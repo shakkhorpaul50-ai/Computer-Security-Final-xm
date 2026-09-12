@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 · Simple Substitution Cipher — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html" class="active">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 04 · Classical</div>
+<div class="topic-head"><div class="sec-num">04 — Classical</div><h1>Simple Substitution Cipher</h1>
+<p class="lede">Monoalphabetic — each plaintext letter maps to exactly one ciphertext letter.</p></div>
+
+<div class="theorem"><div class="label">Formal definition</div>
+Let Σ = {A..Z}. The key is a permutation π on Σ. Encryption and decryption:<div class="math">C_i = π(P_i)          <span class="c"># look up substitution row</span>
+P_i = π⁻¹(C_i)        <span class="c"># invert the permutation</span></div></div>
+
+<h2>Mechanism</h2>
+<p>The key is a permutation of the 26-letter alphabet. Each plaintext letter is replaced by its mapped counterpart.</p>
+<div class="math">Plaintext :  <span class="h">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</span>
+Ciphertext:  <span class="v">Q W E R T Y U I O P A S D F G H J K L Z X C V B N M</span>
+
+E.g.   HELLO  →  ITSSG
+       WORLD  →  VKXZE</div>
+
+<h2>Properties</h2>
+<ul><li>Keyspace = <strong>26! ≈ 4 × 10²⁶ ≈ 2⁸⁸</strong> — too large for 19th-century brute force:<div class="math">log₂(26!) = Σ log₂(k) ≈ <span class="r">88.4 bits</span></div></li>
+<li>But each letter always maps to the same letter — pattern leaks</li>
+<li>Word boundaries, doubled letters, digraph frequencies all preserved</li></ul>
+
+<h2>Attack: Frequency Analysis — worked</h2>
+<p>English letter frequencies are highly non-uniform:</p>
+<table class="data"><tr><th>Letter</th><th>E</th><th>T</th><th>A</th><th>O</th><th>I</th><th>N</th><th>S</th><th>H</th><th>R</th></tr>
+<tr><th>Freq %</th><td>12.7</td><td>9.1</td><td>8.2</td><td>7.5</td><td>7.0</td><td>6.7</td><td>6.3</td><td>6.1</td><td>6.0</td></tr></table>
+<div class="steps">
+<div class="step"><strong>Count.</strong> Tally each ciphertext letter. Suppose <code>S</code> appears 14%, <code>X</code> 9%, <code>A</code> 8% — well above the ~3.8% uniform average.</div>
+<div class="step"><strong>Map singles.</strong> Guesses: <code>S→E</code>, <code>X→T</code>, <code>A→A/O</code>. Single-letter words must be <code>A</code> or <code>I</code> — huge constraint.</div>
+<div class="step"><strong>Use digraphs &amp; doubles.</strong> Most common digraphs TH, HE, IN; most common doubles LL, EE, SS, OO. If <code>SS</code> appears doubled often, <code>S</code> is likely E/L/O.</div>
+<div class="step"><strong> common words.</strong> Try <code>THE</code> pattern: a 3-letter word with pattern <code>X??</code> appearing 5× is almost certainly THE — solving 3 letters at once.</div>
+</div>
+<p>Cipher breaks with ~25–50 letters of ciphertext. Big keyspace is irrelevant — the statistics of English do the work.</p>
+<div class="box accent"><div class="label">Verdict</div>Computationally trivial today. Historical importance: it set up the problem that Vigenère and Playfair tried to solve.</div>
+<div class="exam-tip"><strong>Exam one-liner:</strong> 26! looks strong, but monoalphabetic = frequency preserved = broken by counting.</div>
+
+<div class="prevnext">
+<a href="03-kerckhoffs-principle.html"><div class="dir">← Prev</div><div class="t">03 · Kerckhoffs's Principle</div></a>
+<a href="05-vigenere-cipher.html"><div class="dir">Next →</div><div class="t">05 · Vigenère Cipher</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

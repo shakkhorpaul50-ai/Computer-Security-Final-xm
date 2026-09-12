@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13 · Access Control Models — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html" class="active">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 13 · Access Control</div>
+<div class="topic-head"><div class="sec-num">13 — Access Control</div><h1>Access Control Models</h1>
+<p class="lede">Who can do what to which resource — and on what basis is that decision made?</p></div>
+
+<table class="data"><tr><th>Model</th><th>Decision Basis</th><th>Strength</th><th>Weakness</th></tr>
+<tr><td><strong>DAC</strong><br><em>Discretionary</em></td><td>Owner decides; ACLs per resource</td><td>Flexible; intuitive ownership</td><td>Leaks via Trojans; malware inherits rights; hard global audit</td></tr>
+<tr><td><strong>MAC</strong><br><em>Mandatory</em></td><td>System labels (Top Secret/Secret/...) on subjects + objects. Bell–LaPadula.</td><td>Strong central policy; Trojan-resistant</td><td>Rigid; admin-heavy; poor commercial fit</td></tr>
+<tr><td><strong>RBAC</strong><br><em>Role-Based</em></td><td>Users → roles → permissions</td><td>Scales with org; matches jobs; easy audit</td><td>Role explosion; static context</td></tr>
+<tr><td><strong>ABAC</strong><br><em>Attribute-Based</em></td><td>Subject/object/action/environment attributes</td><td>Most expressive; dynamic</td><td>Policy complexity; harder "who has what" audit</td></tr></table>
+
+<h2>Theory — the classic policies behind MAC</h2>
+<div class="box blue"><div class="label">Bell–LaPadula (confidentiality, military)</div>
+<div class="math">no-read-up:    subject s may read object o  iff clearance(s) ≥ classification(o)
+no-write-down:  s may write o  iff classification(o) ≥ clearance(s)
+<span class="c"># Info flows UP only — Secret can't leak to Unclassified.</span></div></div>
+<div class="box green"><div class="label">Biba (integrity — the mirror) + Clark-Wilson</div>
+<div class="math">Biba no-write-up / no-read-down: low-integrity data can't taint high-integrity objects.
+Clark-Wilson: commercial integrity via well-formed transactions + separation of duties.</div>
+Lattice: labels form a partial order (Unclassified &lt; Secret &lt; Top Secret); compartments add sets (e.g. {NATO, Crypto}) compared by ⊆.</div>
+
+<h2>Evolution</h2>
+<div class="math">DAC  →  MAC  →  RBAC  →  ABAC
+ ↑       ↑       ↑         ↑
+owner   state   role    attributes
+based   labels  based   + environment</div>
+
+<h2>Decision logic</h2>
+<div class="math"><span class="c"># DAC</span>
+if (owner_of(resource).grants(user, action))  PERMIT
+<span class="c"># MAC</span>
+if (clearance(user) ≥ classification(resource))  PERMIT
+<span class="c"># RBAC (with hierarchy: senior roles inherit junior perms)</span>
+if (role(user) ∈ permitted_roles(resource, action))  PERMIT
+<span class="c"># ABAC (next page in full)</span>
+if (policy(subject_attrs, object_attrs, env_attrs, action))  PERMIT</div>
+<div class="box green"><div class="label">Order of evolution</div>
+Each model adds expressiveness. RBAC is a special case of ABAC where the only attribute is "role".</div>
+<div class="exam-tip"><strong>Exam one-liner:</strong> DAC=owner says, MAC=labels say (BLP up-only), RBAC=role says, ABAC=attributes say.</div>
+
+<div class="prevnext">
+<a href="12-sps-protocol.html"><div class="dir">← Prev</div><div class="t">12 · SPS Protocol</div></a>
+<a href="14-abac.html"><div class="dir">Next →</div><div class="t">14 · ABAC</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

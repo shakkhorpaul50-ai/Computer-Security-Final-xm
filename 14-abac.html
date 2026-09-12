@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>14 · ABAC — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html" class="active">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 14 · Access Control</div>
+<div class="topic-head"><div class="sec-num">14 — Access Control</div><h1>Attribute-Based Access Control (ABAC)</h1>
+<p class="lede">Decisions are expressions over attributes — not fixed roles or labels. The most expressive model.</p></div>
+
+<h2>Four attribute sources</h2>
+<ul><li><strong>Subject:</strong> user_id, department, clearance, role, age, certification, training completed</li><li><strong>Object:</strong> resource_type, classification, owner, sensitivity, project_id</li><li><strong>Action:</strong> read / write / delete / approve / execute</li><li><strong>Environment:</strong> time, day, location (IP/GPS), device posture, threat level, network</li></ul>
+
+<h2>Policy structure + two worked policies</h2>
+<div class="math"><span class="c"># Generic rule</span>
+PERMIT  if  subject.attr OP value  AND object.attr OP value
+        AND environment.attr OP value  AND action ∈ allowed
+<span class="c"># OP: ==, !=, &lt;, &gt;, ≤, ≥, ∈, ⊆, regex, ...</span>
+
+<span class="c"># Policy 1 — doctors read own-dept records on weekdays, business hours</span>
+PERMIT if subject.role == "doctor"  AND subject.dept == object.dept
+       AND object.type == "medical_record"  AND environment.time ∈ "07:00–19:00"
+       AND environment.day ∈ {Mon..Fri}  AND action == "read"
+
+<span class="c"># Policy 2 — managers approve ≤50k from corporate devices, deny externals</span>
+PERMIT if subject.role == "manager"  AND object.type == "invoice"
+       AND object.amount ≤ 50000  AND environment.device == "managed"
+       AND environment.network != "external"  AND action == "approve"</div>
+
+<div class="theorem"><div class="label">Theory — combining &amp; verdicts</div>
+Multiple policies combine: <code>deny-overrides</code> (any Deny wins — safest), <code>permit-overrides</code>, <code>first-applicable</code>. PDP outputs one of:<div class="math">Permit / Deny / NotApplicable (no policy matched) / Indeterminate (missing attr / error)</div>PEP must fail closed: anything not explicitly Permitted is Denied.</div>
+
+<h2>Decision flow — XACML architecture</h2>
+<div class="steps">
+<div class="step"><strong>PEP</strong> — Policy Enforcement Point. Fronts the resource; blocks until a decision arrives.</div>
+<div class="step"><strong>PIP</strong> — Policy Information Point. Gathers attributes (LDAP, HR DB, time, device posture).</div>
+<div class="step"><strong>PDP</strong> — Policy Decision Point. Evaluates policies → Permit / Deny / NotApplicable / Indeterminate.</div>
+<div class="step"><strong>PAP</strong> — Policy Administration Point. Authors/versions/manages the policy store.</div>
+<div class="step">PEP enforces the verdict — allows or blocks.</div>
+</div>
+
+<div class="diagram">
+<svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+<rect x="20" y="80" width="60" height="40" fill="#1e3a5f" rx="4"/><text x="50" y="103" font-family="Inter" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">Subject</text>
+<rect x="120" y="80" width="60" height="40" fill="#a0281d" rx="4"/><text x="150" y="103" font-family="Inter" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">PEP</text>
+<rect x="240" y="80" width="60" height="40" fill="#9a7a1a" rx="4"/><text x="270" y="103" font-family="Inter" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">PDP</text>
+<rect x="240" y="20" width="60" height="40" fill="#2d5e3e" rx="4"/><text x="270" y="43" font-family="Inter" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">PAP</text>
+<rect x="240" y="140" width="60" height="40" fill="#2d5e3e" rx="4"/><text x="270" y="163" font-family="Inter" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">PIP</text>
+<rect x="380" y="80" width="60" height="40" fill="#1e3a5f" rx="4"/><text x="410" y="103" font-family="Inter" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">Object</text>
+<line x1="80" y1="100" x2="120" y2="100" stroke="#1a1714" stroke-width="2"/><line x1="180" y1="100" x2="240" y2="100" stroke="#1a1714" stroke-width="2"/><line x1="300" y1="100" x2="380" y2="100" stroke="#1a1714" stroke-width="2"/>
+<line x1="270" y1="60" x2="270" y2="80" stroke="#1a1714" stroke-width="1.5" stroke-dasharray="3,2"/><line x1="270" y1="120" x2="270" y2="140" stroke="#1a1714" stroke-width="1.5" stroke-dasharray="3,2"/>
+<text x="470" y="105" font-family="Inter" font-size="10" fill="#6b6660">← enforce decision</text>
+</svg>
+<div class="cap">XACML flow: PEP intercepts, PDP decides, PIP provides attributes, PAP manages policies.</div>
+</div>
+
+<h2>Strengths</h2>
+<ul><li><strong>Fine-grained</strong> — single attribute combinations</li><li><strong>Dynamic</strong> — re-evaluated per request; no stale roles</li><li><strong>Composable</strong> — Boolean AND/OR/NOT</li><li><strong>Scalable</strong> — avoids RBAC role explosion</li><li><strong>Context-aware</strong> — time, location, posture</li></ul>
+<div class="box blue"><div class="label">Standard</div>
+XACML (OASIS XML standard). Modern alternatives: Open Policy Agent (Rego), AWS IAM policies, Cedar.</div>
+<div class="box gold"><div class="label">Exam one-liner</div>
+ABAC evaluates subject/object/action/environment attributes at request time via PEP→PDP (PIP supplies attrs, PAP manages) — most expressive of the four.</div>
+
+<div class="prevnext">
+<a href="13-access-control-models.html"><div class="dir">← Prev</div><div class="t">13 · Access Control Models</div></a>
+<a href="index.html"><div class="dir">Next →</div><div class="t">Home</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

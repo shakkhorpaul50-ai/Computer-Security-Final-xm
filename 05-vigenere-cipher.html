@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 · Vigenère Cipher — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html" class="active">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 05 · Classical</div>
+<div class="topic-head"><div class="sec-num">05 — Classical</div><h1>Vigenère Cipher (Original)</h1>
+<p class="lede">Polyalphabetic — rotates the substitution alphabet using a keyword. Defeats simple frequency analysis.</p></div>
+
+<h2>Mathematical definition</h2>
+<p>Key = a word of length L, repeated to message length. Letters A=0, B=1, …, Z=25.</p>
+<div class="math"><span class="c"># Encryption: each plaintext letter shifted by the key letter</span>
+C_i = (P_i + K_<span class="v">i mod L</span>) mod 26
+
+<span class="c"># Decryption: reverse the shift</span>
+P_i = (C_i − K_<span class="v">i mod L</span>) mod 26</div>
+<div class="theorem"><div class="label">Theory — Tabula Recta</div>
+Vigenère = L Caesar ciphers interleaved. Row = key letter, column = plaintext letter, cell = ciphertext. Position <code>i</code> uses alphabet <code>i mod L</code>, so the same <code>P</code> encrypts differently at different positions — flattening single-letter frequencies.</div>
+
+<h2>Worked example</h2>
+<div class="math">Key    :  L  E  M  O  N  L  E  M  O  N  L
+Plain  :  A  T  T  A  C  K  A  T  D  A  W  N
+Shift  : 11  4 12 14 13 11  4 12 14 13 11
+Cipher :  L  X  F  O  P  V  E  N  D  A  H  L
+
+<span class="c">// A(0)+L(11)=11→L   T(19)+E(4)=23→X   T(19)+M(12)=31 mod26=5→F   ...</span></div>
+
+<h2>Strength</h2>
+<p>The same plaintext letter maps to different ciphertext letters depending on position, so simple letter-frequency analysis fails. For 300 years it was called "le chiffre indéchiffrable".</p>
+
+<h2>Weakness — key length is the footing</h2>
+<p>If key length L is known, the cipher decomposes into L independent Caesar ciphers — each breakable by frequency analysis on every L-th letter.</p>
+<div class="box accent"><div class="label">Kasiski Test (1863) — worked</div>
+Find repeated ciphertext blocks (≥3 letters). Measure distances between repeats. The GCD of distances is (almost certainly) L or a multiple of L.<div class="math"><span class="c"># e.g. block "VEND" repeats at positions 6, 18, 30</span>
+distances: 18−6 = 12,  30−18 = 12,  30−6 = 24
+gcd(12, 12, 24) = <span class="r">12</span>  →  L divides 12 (try 2,3,4,6,12)</div>Then attack each of the L sub-ciphers with single-letter frequencies.</div>
+<div class="box blue"><div class="label">Friedman Test (1920) — Index of Coincidence</div>
+Uses IC to estimate L statistically:<div class="math">IC = Σ f_i·(f_i − 1) / N·(N − 1)    <span class="c"># f_i = count of letter i</span>
+
+IC ≈ 0.0385 random text,  ≈ 0.0667 English
+L ≈ 0.027·N / ((N−1)·IC − 0.038·N + 0.065)</div>Compute IC of the ciphertext; values near 0.066/L + 0.038(L−1)/L reveal L. Needs ~100+ letters but is fully automatic.</div>
+<div class="exam-tip"><strong>Exam one-liner:</strong> Vigenère = L Caesars. Kasiski finds L from repeats, Friedman from statistics — then each Caesar falls to frequency analysis.</div>
+
+<div class="prevnext">
+<a href="04-substitution-cipher.html"><div class="dir">← Prev</div><div class="t">04 · Simple Substitution</div></a>
+<a href="06-playfair-cipher.html"><div class="dir">Next →</div><div class="t">06 · Playfair Cipher</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

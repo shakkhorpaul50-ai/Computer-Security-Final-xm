@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 · Playfair Cipher — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html" class="active">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 06 · Classical</div>
+<div class="topic-head"><div class="sec-num">06 — Classical</div><h1>Playfair Cipher</h1>
+<p class="lede">Digraph substitution using a 5×5 key matrix. The first practical cipher to encrypt letter pairs, raising the alphabet from 26 symbols to 625.</p></div>
+
+<h2>Setup — build the 5×5 matrix</h2>
+<ol><li>Write the keyword, dropping duplicate letters</li><li>Fill remaining cells with the rest of the alphabet in order. I and J share one cell (25 letters in a 25-cell grid)</li></ol>
+<div class="matrix">M  O  N  A  R
+C  H  Y  B  D
+E  F  G  I  L
+P  Q  S  T  U
+V  W  X  Z  K</div>
+<p style="font-size:12px;color:var(--muted);font-style:italic">Matrix from keyword "MONARCHY" (I/J merged, K fills last cell).</p>
+
+<h2>Prepare plaintext</h2>
+<ul><li>Split into <strong>digraphs</strong> (pairs)</li><li>If a pair has the same letter (e.g. LL), insert <code>X</code> between them → LX, L_</li><li>If the final pair is incomplete, pad with <code>X</code></li></ul>
+<div class="math"><span class="c"># Example: HELLO WORLD</span>
+HELLO → HE LX LO      <span class="c"># LL split with X</span>
+WORLD → WO RL DX      <span class="c"># final D padded with X</span></div>
+
+<h2>Encryption rules (3 cases)</h2>
+<div class="box accent"><div class="label">① Same row</div>Replace each letter with the letter to its <strong>right</strong> (wrap around).</div>
+<div class="box blue"><div class="label">② Same column</div>Replace each letter with the letter <strong>below</strong> it (wrap to top).</div>
+<div class="box green"><div class="label">③ Rectangle</div>Replace each letter with the letter in <strong>its own row</strong> but in the <strong>other letter's column</strong>.</div>
+<div class="theorem"><div class="label">Decryption (mirror)</div>
+Same-row → shift <strong>left</strong>; same-column → shift <strong>up</strong>; rectangle → same as encryption (symmetric). Receiver uses the identical matrix.</div>
+
+<h2>Worked examples (MONARCHY matrix)</h2>
+<div class="math"><span class="c"># "HI" → rectangle: H(1,1), I(2,3)</span>
+H → row 1, col 3 = Y     I → row 2, col 1 = C
+<span class="r">HI → YC</span>
+
+<span class="c"># "AR" → same row 0: A(0,3), R(0,4) → shift right</span>
+A → R,   R → M (wrap)
+<span class="r">AR → RM</span>
+
+<span class="c"># "HE" → rectangle: H(1,1), E(2,0)</span>
+H → row 1, col 0 = C     E → row 2, col 1 = F
+<span class="r">HE → CF</span></div>
+
+<h2>Strength &amp; weakness</h2>
+<ul><li>625 digraphs vs 26 letters — needs ~25× more ciphertext for frequency analysis</li><li>Still broken by digraph-frequency analysis on TH, HE, AN, IN, ER</li><li>Used militarily in the Boer War and World War I</li></ul>
+<div class="exam-tip"><strong>Exam one-liner:</strong> Right if same row, down if same column, else own-row/other-column. Decrypt = left/up.</div>
+
+<div class="prevnext">
+<a href="05-vigenere-cipher.html"><div class="dir">← Prev</div><div class="t">05 · Vigenère Cipher</div></a>
+<a href="07-aes.html"><div class="dir">Next →</div><div class="t">07 · AES</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

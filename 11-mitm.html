@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11 · MITM — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html" class="active">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 11 · Attack</div>
+<div class="topic-head"><div class="sec-num">11 — Attack</div><h1>Man-in-the-Middle (MITM)</h1>
+<p class="lede">Vanilla DH is anonymous. An active attacker can transparently relay and re-encrypt — neither side notices.</p></div>
+
+<h2>Theory</h2>
+<p>Because plain Diffie-Hellman has no authentication, Mallory sits between Alice and Bob, intercepts each public value, substitutes her own, and ends with <em>two separate shared keys</em> — one with each side. Both believe they share with each other; both share with Mallory.</p>
+<div class="math"><span class="c"># What Alice &amp; Bob think happens:</span>
+K_ab = g^(ab) mod p   <span class="c"># single shared key (illusion)</span>
+
+<span class="c"># What actually happens under MITM (m, m' = Mallory secrets):</span>
+K1 = (g^m')^a = g^(m'a) mod p   <span class="c"># Alice–Mallory</span>
+K2 = (g^m)^b  = g^(mb)  mod p   <span class="c"># Mallory–Bob</span>
+<span class="r">K1 ≠ K2 — Mallory decrypts with one, re-encrypts with the other.</span></div>
+
+<h2>Step-by-step attack</h2>
+<div class="steps">
+<div class="step">Alice sends <code>A = g^a</code>. <strong>Mallory intercepts</strong> and replaces with <code>M = g^m</code>.</div>
+<div class="step">Bob receives M, computes <code>K₂ = M^b = g^(mb)</code> — shared with Mallory.</div>
+<div class="step">Bob sends <code>B = g^b</code>. Mallory intercepts, replaces with <code>M' = g^m'</code>.</div>
+<div class="step">Alice receives M', computes <code>K₁ = (M')^a = g^(m'a)</code> — shared with Mallory.</div>
+<div class="step">Mallory holds <strong>both K₁ and K₂</strong>. Decrypts Alice→Bob with K₁, re-encrypts with K₂, forwards — and vice versa.</div>
+<div class="step">Nothing visibly breaks: messages arrive, ciphertexts decrypt. Total compromise.</div>
+</div>
+
+<div class="diagram">
+<svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+<circle cx="60" cy="110" r="28" fill="#1e3a5f"/><text x="60" y="116" font-family="Fraunces" font-size="13" fill="#fff" text-anchor="middle" font-weight="700">Alice</text>
+<circle cx="320" cy="110" r="32" fill="#a0281d"/><text x="320" y="106" font-family="Fraunces" font-size="12" fill="#fff" text-anchor="middle" font-weight="700">Mallory</text><text x="320" y="122" font-family="Inter" font-size="9" fill="#fff" text-anchor="middle">MITM</text>
+<circle cx="580" cy="110" r="28" fill="#2d5e3e"/><text x="580" y="116" font-family="Fraunces" font-size="13" fill="#fff" text-anchor="middle" font-weight="700">Bob</text>
+<line x1="90" y1="95" x2="288" y2="95" stroke="#1a1714" stroke-width="2"/><text x="190" y="88" font-family="JetBrains Mono" font-size="10" fill="#a0281d" text-anchor="middle">A → intercepted</text>
+<line x1="288" y1="125" x2="90" y2="125" stroke="#a0281d" stroke-width="2" stroke-dasharray="4,3"/><text x="190" y="142" font-family="JetBrains Mono" font-size="10" fill="#a0281d" text-anchor="middle">M = g^m substituted</text>
+<line x1="352" y1="95" x2="550" y2="95" stroke="#a0281d" stroke-width="2" stroke-dasharray="4,3"/><text x="450" y="88" font-family="JetBrains Mono" font-size="10" fill="#a0281d" text-anchor="middle">M' substituted</text>
+<line x1="550" y1="125" x2="352" y2="125" stroke="#1a1714" stroke-width="2"/><text x="450" y="142" font-family="JetBrains Mono" font-size="10" fill="#a0281d" text-anchor="middle">B → intercepted</text>
+<text x="320" y="180" font-family="Fraunces" font-size="12" fill="#1a1714" text-anchor="middle" font-weight="700">Mallory holds K₁ with Alice AND K₂ with Bob</text>
+</svg>
+<div class="cap">Two separate keys; Mallory translates between them.</div>
+</div>
+
+<div class="box accent"><div class="label">Defense — authenticate the exchange (STS pattern)</div>
+<div class="math"><span class="c"># Station-to-Station: sign the DH values with long-term keys</span>
+A → B:  A = g^a,  Sig_A(A, B_expected)
+B → A:  B = g^b,  Sig_B(B, A),  Enc_K(Sig_B)  <span class="c"># encrypt sig under K</span>
+<span class="c"># Each side verifies the signature against a known public key / CA cert.</span>
+<span class="c"># Mallory can't forge Sig_A or Sig_B → substitution detected.</span></div>
+<ul style="margin:6px 0 0 16px"><li><strong>TLS:</strong> server cert (CA-signed) authenticates handshake, then DH gives session key</li><li><strong>SIGMA / IKEv2:</strong> bind identity with MACs over the transcript</li></ul></div>
+<div class="box gold"><div class="label">Key takeaway</div>Key agreement without authentication is key agreement with anyone — including the attacker.</div>
+
+<div class="prevnext">
+<a href="10-diffie-hellman.html"><div class="dir">← Prev</div><div class="t">10 · Diffie-Hellman</div></a>
+<a href="12-sps-protocol.html"><div class="dir">Next →</div><div class="t">12 · SPS Protocol</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>
