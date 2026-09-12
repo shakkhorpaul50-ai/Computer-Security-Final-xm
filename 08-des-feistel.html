@@ -11,7 +11,7 @@
 <a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
 <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
 <div class="nav-links">
-<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Keys</a><a href="08-des-feistel.html" class="active">08 DES</a><a href="08b-des-encryption.html">08B DES-Enc</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Round1</a><a href="08-des-feistel.html" class="active">08 DES</a><a href="08b-des-encryption.html">08B KeySch</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
 </div></div></nav>
 <main class="wrap">
 <div class="breadcrumb"><a href="index.html">Home</a> / 08 · Symmetric</div>
@@ -105,15 +105,17 @@ Rounds 1,2,9,16 → shift 1. Others → shift 2. Total = 4×1+12×2 = 28, so C�
 <table class="data"><tr><th>Round</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th></tr>
 <tr><th>Shift</th><td>1</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td></tr>
 <tr><th>Cumul.</th><td>1</td><td>2</td><td>4</td><td>6</td><td>8</td><td>10</td><td>12</td><td>14</td><td>15</td><td>17</td><td>19</td><td>21</td><td>23</td><td>25</td><td>27</td><td>28</td></tr></table>
-<div class="box green"><div class="label">Deep-dive → new page</div>
-All 16 subkeys K₁–K₁₆ for this exact key, plus a full plaintext→ciphertext run (<code>0123456789ABCDEF → 85E813540F0AB405</code>) with IP, Round-1 F-breakdown and final permutation, are on <a href="08b-des-encryption.html"><strong>08B · DES Full Encryption Worked</strong></a>.</div>
+<div class="box green"><div class="label">Deep-dive → 08B</div>
+PC-1 pick-by-pick (all 56 bits with values), C/D shifts for every round, and PC-2 pick-by-pick to K₁ are traced on <a href="08b-des-encryption.html"><strong>08B · DES Key Expansion Every Bit Traced</strong></a>.</div>
+<div class="box gold"><div class="label">Encryption vector (preserved here)</div>
+Key <code>133457799BBCDFF1</code>, plaintext <code>0123456789ABCDEF</code>: IP gives <code>L0=CC00CCFF R0=F0AAF0AA</code>; Round 1: <code>E(R0)=7A15557A1555 ⊕ K1 → 6117BAAB0A67</code>, S1 <code>011000→0101</code>, <code>f=234A5044</code>, <code>R1=EF4A9CBB L1=F0AAF0AA</code>; after 16 rounds + IP⁻¹ → <code>85E813540F0AB405</code> ✓</div>
 <div class="box accent"><div class="label">Why DES is dead</div>
 56-bit → 2⁵⁶ ≈ 7.2×10¹⁶. EFF Deep Crack (1998) brute-forced it in ~22h. Successor: AES.</div>
 <div class="exam-tip"><strong>Exam one-liner:</strong> Feistel decrypts with reversed keys; DES = 16 Feistel rounds + broken 56-bit key (K₁=<code>1B02EFFC7072</code>).</div>
 
 <div class="prevnext">
-<a href="07b-aes-key-expansion.html"><div class="dir">← Prev</div><div class="t">07B · AES Key Expansion</div></a>
-<a href="08b-des-encryption.html"><div class="dir">Next →</div><div class="t">08B · DES Full Encryption</div></a>
+<a href="07b-aes-key-expansion.html"><div class="dir">← Prev</div><div class="t">07B · AES Round 1</div></a>
+<a href="08b-des-encryption.html"><div class="dir">Next →</div><div class="t">08B · DES Key Expansion</div></a>
 </div>
 </main>
 <footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>

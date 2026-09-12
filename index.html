@@ -20,9 +20,9 @@
 <a href="05-vigenere-cipher.html">05 Vigenère</a>
 <a href="06-playfair-cipher.html">06 Playfair</a>
 <a href="07-aes.html">07 AES</a>
-<a href="07b-aes-key-expansion.html">07B Keys</a>
+<a href="07b-aes-key-expansion.html">07B Round1</a>
 <a href="08-des-feistel.html">08 DES</a>
-<a href="08b-des-encryption.html">08B DES-Enc</a>
+<a href="08b-des-encryption.html">08B KeySch</a>
 <a href="09-rsa.html">09 RSA</a>
 <a href="10-diffie-hellman.html">10 DH</a>
 <a href="11-mitm.html">11 MITM</a>
@@ -59,9 +59,9 @@
 <div class="section-title">Symmetric Crypto</div>
 <div class="cards">
 <a class="card" href="07-aes.html"><span class="n">07</span><h3>AES — Full Round Math</h3><p>FIPS-197 vector, SubBytes→ShiftRows→MixColumns→AddRoundKey + GF(2⁸), S-box, full structure.</p><span class="go">Open →</span></a>
-<a class="card" href="07b-aes-key-expansion.html"><span class="n">07B</span><h3>AES Key Expansion Deep-Dive</h3><p>W₀–W₄₃ traced, RotWord/SubWord/Rcon, K₁ + K₂ fully worked. Companion to 07.</p><span class="go">Open →</span></a>
+<a class="card" href="07b-aes-key-expansion.html"><span class="n">07B</span><h3>AES Round 1 Every Step</h3><p>S-box coordinates, ShiftRows map, MixColumns binary + intermediates, AddRoundKey per byte.</p><span class="go">Open →</span></a>
 <a class="card" href="08-des-feistel.html"><span class="n">08</span><h3>DES / Feistel</h3><p>Feistel proof, F-function, E/P tables, shift table, full K1 from 133457799BBCDFF1.</p><span class="go">Open →</span></a>
-<a class="card" href="08b-des-encryption.html"><span class="n">08B</span><h3>DES Full Encryption Worked</h3><p>All K₁–K₁₆ + 0123456789ABCDEF → 85E813540F0AB405 with Round-1 F-breakdown.</p><span class="go">Open →</span></a>
+<a class="card" href="08b-des-encryption.html"><span class="n">08B</span><h3>DES Key Expansion Every Bit</h3><p>PC-1 pick-by-pick, shifts every round, PC-2 pick-by-pick to K₁ + all K₁–K₁₆.</p><span class="go">Open →</span></a>
 </div>
 
 <div class="section-title">Asymmetric + Attacks</div>

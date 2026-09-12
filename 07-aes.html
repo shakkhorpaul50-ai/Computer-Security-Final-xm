@@ -11,7 +11,7 @@
 <a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
 <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
 <div class="nav-links">
-<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html" class="active">07 AES</a><a href="07b-aes-key-expansion.html">07B Keys</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html">08B DES-Enc</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html" class="active">07 AES</a><a href="07b-aes-key-expansion.html">07B Round1</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html">08B KeySch</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
 </div></div></nav>
 <main class="wrap">
 <div class="breadcrumb"><a href="index.html">Home</a> / 07 · Symmetric</div>
@@ -157,21 +157,34 @@ Round 10 (final): SubBytes → ShiftRows → AddRoundKey(K10)  <span class="c">#
 <span class="c"># Decryption inverts each step in reverse with Inv- versions:</span>
 InvShiftRows → InvSubBytes → AddRoundKey → InvMixColumns  (Equivalent Inverse Cipher)</div>
 
-<h2>Theory — where does K₁ come from? (key expansion)</h2>
-<div class="math"><span class="c"># AES-128: 4 words → 44 words. First expansion step:</span>
-W0..W3 = cipher key columns
-temp = RotWord(W3) → SubWord → XOR Rcon[1]=0x01
-W4 = W0 ⊕ temp,  W5 = W1 ⊕ W4,  W6 = W2 ⊕ W5,  W7 = W3 ⊕ W6
-<span class="c"># W4..W7 packed column-major = K1 = a0fafe17...</span></div>
-<div class="box blue"><div class="label">Deep-dive → new page</div>
-Full 44-word key schedule with every RotWord / SubWord / Rcon step (W₀–W₄₃, K₁ and K₂ fully traced) is now on <a href="07b-aes-key-expansion.html"><strong>07B · AES Key Expansion Deep-Dive</strong></a>.</div>
+<h2>Theory — where does K₁ come from? (key expansion, full W₄–W₁₁)</h2>
+<div class="math"><span class="c"># AES-128: 4 words → 44 words. W0..W3 = key columns:</span>
+W0=2b7e1516 W1=28aed2a6 W2=abf71588 W3=09cf4f3c
+<span class="c"># Rule: if i mod 4==0, temp=SubWord(RotWord(W[i-1]))⊕Rcon; else temp=W[i-1]; W[i]=W[i-4]⊕temp</span>
+<span class="c"># Rcon[1]=01, Rcon[2]=02 (powers of 2 in GF(2^8))</span>
+
+<span class="c"># --- W4 (Rcon[1]) ---</span>
+Rot(09cf4f3c)=cf4f3c09 → Sub=8a84eb01 → ⊕01 = <span class="v">8b84eb01</span>
+W4 = 2b7e1516⊕8b84eb01 = <span class="r">a0fafe17</span>  <span class="c"># 2b⊕8b=a0 7e⊕84=fa 15⊕eb=fe 16⊕01=17</span>
+W5 = 28aed2a6⊕a0fafe17 = <span class="r">88542cb1</span>
+W6 = abf71588⊕88542cb1 = <span class="r">23a33939</span>
+W7 = 09cf4f3c⊕23a33939 = <span class="r">2a6c7605</span>
+<span class="r">K1 = a0fafe17 88542cb1 23a33939 2a6c7605</span> ✓
+
+<span class="c"># --- W8 (Rcon[2]) ---</span>
+Rot(2a6c7605)=6c76052a → Sub=50386be5 → ⊕02 = <span class="v">52386be5</span>
+W8 =a0fafe17⊕52386be5 = <span class="r">f2c295f2</span>   W9 =88542cb1⊕f2c295f2 = <span class="r">7a96b943</span>
+W10=23a33939⊕7a96b943 = <span class="r">5935807a</span>   W11=2a6c7605⊕5935807a = <span class="r">7359f67f</span>
+<span class="r">K2 = f2c295f2 7a96b943 5935807a 7359f67f</span>  (FIPS-197 ✓)</div>
+<div class="box blue"><div class="label">Deep-dive → 07B</div>
+Every byte of Round 1 (S-box coordinates, ShiftRows index map, MixColumns binary longhand + intermediate XORs, AddRoundKey per byte) is traced on <a href="07b-aes-key-expansion.html"><strong>07B · AES Round 1 Every Step Expanded</strong></a>.</div>
 <div class="box gold"><div class="label">Design rationale</div>
 SubBytes = non-linearity (vs linear/differential cryptanalysis) · ShiftRows + MixColumns = diffusion (avalanche) · AddRoundKey = confusion (mixes key). Final round omits MixColumns (symmetry for decryption).</div>
 <div class="exam-tip"><strong>Exam one-liner:</strong> SubBytes confuses, ShiftRows+MixColumns diffuse, AddRoundKey keying — verify Round-1 state <code>a4 68 6b 02…</code>.</div>
 
 <div class="prevnext">
 <a href="06-playfair-cipher.html"><div class="dir">← Prev</div><div class="t">06 · Playfair Cipher</div></a>
-<a href="07b-aes-key-expansion.html"><div class="dir">Next →</div><div class="t">07B · AES Key Expansion</div></a>
+<a href="07b-aes-key-expansion.html"><div class="dir">Next →</div><div class="t">07B · AES Round 1</div></a>
 </div>
 </main>
 <footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>

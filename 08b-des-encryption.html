@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>08B · DES Full Encryption Worked — CramSheet</title>
+<title>08B · DES Key Expansion Every Bit Traced — CramSheet</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -11,70 +11,85 @@
 <a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
 <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
 <div class="nav-links">
-<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Keys</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html" class="active">08B DES-Enc</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Round1</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html" class="active">08B KeySch</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
 </div></div></nav>
 <main class="wrap">
 <div class="breadcrumb"><a href="index.html">Home</a> / <a href="08-des-feistel.html">08 · DES</a> / 08B Deep-Dive</div>
-<div class="topic-head"><div class="sec-num">08B — Symmetric Deep-Dive</div><h1>DES Full Encryption — Test Vector End-to-End</h1>
-<p class="lede">Key <code>133457799BBCDFF1</code>, plaintext <code>0123456789ABCDEF</code> → ciphertext <code>85E813540F0AB405</code>. Companion to 08.</p></div>
+<div class="topic-head"><div class="sec-num">08B — Symmetric Deep-Dive</div><h1>DES Key Expansion — Every Bit Traced</h1>
+<p class="lede">Key <code>133457799BBCDFF1</code>: PC-1 pick-by-pick to C₀/D₀, shifts every round, PC-2 pick-by-pick to K₁. Companion to 08.</p></div>
 
-<h2>All 16 subkeys for this key (verify your schedule against these)</h2>
-<table class="data"><tr><th>Round</th><th>Subkey K (48-bit hex)</th><th>Shift</th></tr>
-<tr><td>1</td><td><code>1B02EFFC7072</code></td><td>1</td></tr>
-<tr><td>2</td><td><code>79AED9DBC9E5</code></td><td>1</td></tr>
-<tr><td>3</td><td><code>55FC8A42CF99</code></td><td>2</td></tr>
-<tr><td>4</td><td><code>72ADD6DB351D</code></td><td>2</td></tr>
-<tr><td>5</td><td><code>7CEC07EB53A8</code></td><td>2</td></tr>
-<tr><td>6</td><td><code>63A53E507B2F</code></td><td>2</td></tr>
-<tr><td>7</td><td><code>EC84B7F618BC</code></td><td>2</td></tr>
-<tr><td>8</td><td><code>F78A3AC53656</code></td><td>2</td></tr>
-<tr><td>9</td><td><code>FEC23342AE17</code></td><td>1</td></tr>
-<tr><td>10</td><td><code>E954204B867D</code></td><td>2</td></tr>
-<tr><td>11</td><td><code>355F5200B5BC</code></td><td>2</td></tr>
-<tr><td>12</td><td><code>A6F3AEB2F3D8</code></td><td>2</td></tr>
-<tr><td>13</td><td><code>64FDB1238758</code></td><td>2</td></tr>
-<tr><td>14</td><td><code>D5FB03E22B81</code></td><td>2</td></tr>
-<tr><td>15</td><td><code>E960AF9129D7</code></td><td>2</td></tr>
-<tr><td>16</td><td><code>1B9616787196</code></td><td>1</td></tr></table>
-<p style="font-size:13px;color:var(--muted)">Standard schedule for this textbook key (shifts 1,1,2×6,1,2×7,1 — cumulative 28, so C₁₆=C₀). Decryption feeds K₁₆…K₁.</p>
+<h2>Step 1 · 64-bit key with bit numbers (parity marked *)</h2>
+<div class="math"><span class="c"># hex 1 3 3 4 5 7 7 9 9 B B C D F F 1 — bits 8,16,24,32,40,48,56,64 are parity (*):</span>
+bits  1-8:  0 0 0 1 0 0 1 <span class="h">1*</span>   <span class="c"># 0x13, parity bit 8=1</span>
+bits  9-16: 0 0 1 1 0 1 0 <span class="h">0*</span>   <span class="c"># 0x34...</span>
+bits 17-24: 0 1 0 1 0 1 1 <span class="h">1*</span>   ... full:
+0001 0011 0011 0100 0101 0111 0111 1001
+1001 1011 1011 1100 1101 1111 1111 0001
+<span class="c"># bit1=0 bit2=0 bit3=0 bit4=1 ... bit57=1 bit58=1 bit59=1 bit60=1 bit61=0 bit62=0 bit63=0 bit64=1</span></div>
 
-<h2>Step 1 · Initial Permutation → L₀, R₀</h2>
-<div class="math">M = 0123456789ABCDEF
-  = 0000 0001 0010 0011 0100 0101 0110 0111
-    1000 1001 1010 1011 1100 1101 1110 1111
+<h2>Step 2 · PC-1 pick-by-pick → C₀ (28 bits)</h2>
+<p>PC-1 left half picks (key-bit# → value). Parity positions never appear.</p>
+<div class="math"><span class="c"># format: PC-1 slot: keybit=value</span>
+57=1 49=1 41=1 33=1 25=0 17=0 9=0   → <span class="v">1111000</span>
+1=0 58=1 50=1 42=0 34=0 26=1 18=1   → <span class="v">0110011</span>
+10=0 2=0 59=1 51=0 43=1 35=0 27=1   → <span class="v">0010101</span>
+19=0 11=1 3=0 60=1 52=1 44=1 36=1   → <span class="v">0101111</span>
+C0 = <span class="r">1111000 0110011 0010101 0101111</span></div>
 
-IP(M): L0 = <span class="h">CC00CCFF</span> = 1100 1100 0000 0000 1100 1100 1111 1111
-       R0 = <span class="h">F0AAF0AA</span> = 1111 0000 1010 1010 1111 0000 1010 1010</div>
+<h2>Step 3 · PC-1 pick-by-pick → D₀ (28 bits)</h2>
+<div class="math">63=0 55=1 47=0 39=1 31=0 23=1 15=0   → <span class="v">0101010</span>
+7=1 62=0 54=1 46=1 38=0 30=0 22=1    → <span class="v">1011001</span>
+14=1 6=0 61=0 53=1 45=1 37=1 29=1    → <span class="v">1001111</span>
+21=0 13=0 5=0 28=1 20=1 12=1 4=1     → <span class="v">0001111</span>
+D0 = <span class="r">0101010 1011001 1001111 0001111</span></div>
 
-<h2>Step 2 · Round-1 F-function on R₀ (every stage shown to S-box input)</h2>
-<div class="math"><span class="c"># Expansion E: 32 → 48 (table on page 08)</span>
-R0 = F0AAF0AA
-E(R0) = <span class="v">7A15557A1555</span>
-  <span class="c"># groups: 011110 100001 010101 010101 011110 100001 010101 010101</span>
+<h2>Step 4 · Left shifts — every round (C₀/D₀ → C₁₆/D₁₆)</h2>
+<div class="math"><span class="c"># LS-n = rotate left by n (drop MSBs, append). Schedule: 1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1</span>
+C0 = 1111000 0110011 0010101 0101111
+C1 = <span class="r">1110000 1100110 0101010 1011111</span>  <span class="c"># LS-1: drop 1, append 1</span>
+D0 = 0101010 1011001 1001111 0001111
+D1 = <span class="r">1010101 0110011 0011110 0011110</span>  <span class="c"># LS-1: drop 0, append 0</span>
 
-<span class="c"># XOR K1 = 1B02EFFC7072</span>
-E ⊕ K1 = 7A15557A1555 ⊕ 1B02EFFC7072 = <span class="v">6117BAAB0A67</span>
-  <span class="c"># 7A⊕1B=61 15⊕02=17 | 55⊕EF=BA 57⊕FC=AB | 7A⊕70=0A 15⊕72=67</span>
+<span class="c"># Round 2 (LS-1 again) for reference:</span>
+C2 = 1100001 1001100 1010101 0111111  <span class="c"># C1&lt;&lt;&lt;1</span>
+D2 = 0101010 1100110 0111100 0111101  <span class="c"># D1&lt;&lt;&lt;1</span>
+<span class="c"># Rounds 3–8 LS-2, round 9 LS-1, rounds 10–15 LS-2, round 16 LS-1.</span>
+<span class="c"># Total = 4×1+12×2 = 28 → C16=C0, D16=D0 (cycle, so decryption reverses).</span></div>
+<table class="data"><tr><th>Round</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th></tr>
+<tr><th>Shift</th><td>1</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td></tr></table>
 
-<span class="c"># Split into eight 6-bit S-box inputs B1..B8:</span>
-B = 011000 010001 011110 111010 101010 110000 101001 100111
-B1=011000 B2=010001 B3=011110 B4=111010 B5=101010 B6=110000 B7=101001 B8=100111</div>
-<div class="box blue"><div class="label">S-box walkthrough — S1 fully, rest identically</div>
-B1=<code>011000</code>: outer <code>00</code>=row 0, inner <code>1100</code>=col 12. S1 row 0 = [14,4,13,1,2,15,11,8,3,10,6,12,<strong>5</strong>,9,0,7] → col 12 = 5 = <code>0101</code>. B2–B8 each do the same row/column lookup in S2–S8 (6→4 bits), giving 32 bits total, then Permutation P shuffles them → 32-bit <code>f(R₀,K₁)</code>.</div>
-<div class="math"><span class="c"># Standard result for this vector:</span>
-f(R0,K1) = <span class="v">234A5044</span>
-R1 = L0 ⊕ f = CC00CCFF ⊕ 234A5044 = <span class="r">EF4A9CBB</span>
-L1 = R0 = <span class="r">F0AAF0AA</span>
-<span class="c"># CC⊕23=EF 00⊕4A=4A CC⊕50=9C FF⊕44=BB ✓</span></div>
+<h2>Step 5 · C₁‖D₁ (56 bits, positions 1–56)</h2>
+<div class="math">C1 (1–28):  1 1 1 0 0 0 0 1 1 0 0 1 1 0 0 1 0 1 0 1 0 1 0 1 1 1 1 1
+D1 (29–56): 1 0 1 0 1 0 1 0 1 1 0 0 1 1 0 0 1 1 1 1 0 0 0 1 1 1 1 0</div>
 
-<h2>Steps 3–16 · Iterate, swap, finish</h2>
-<div class="math">Rounds 2–16: same Feistel step with K2..K16 above.
-After R16: pre-output = R16 ‖ L16   <span class="c"># final swap (undoes last crossover)</span>
-Ciphertext = IP⁻¹(pre-output) = <span class="r">85E813540F0AB405</span>  ✓
-<span class="c"># Decryption: identical circuit, keys K16..K1, ciphertext → 0123456789ABCDEF.</span></div>
-<div class="box gold"><div class="label">What to memorise</div>
-IP gives L₀=<code>CC00CCFF</code> R₀=<code>F0AAF0AA</code>; Round 1 gives L₁=<code>F0AAF0AA</code> R₁=<code>EF4A9CBB</code>; final cipher <code>85E813540F0AB405</code>. K₁=<code>1B02EFFC7072</code>, K₁₆=<code>1B9616787196</code>. If you can reproduce E⊕K₁=<code>6117BAAB0A67</code> and the S1 lookup, you own DES.</div>
-<div class="exam-tip"><strong>Exam one-liner:</strong> Expand (E) → XOR key → S-boxes → P-permute → XOR left half; 16× with K₁…K₁₆, then IP⁻¹.</div>
+<h2>Step 6 · PC-2 pick-by-pick → K₁ (48 bits → hex)</h2>
+<p>PC-2 picks 48 of 56. Format <code>out←in=value</code>, grouped to bytes.</p>
+<div class="math"><span class="c"># Row 1 (out 1–8):</span>
+1←14=0 2←17=0 3←11=0 4←24=1 5←1=1 6←5=0 7←3=1 8←28=1  → <span class="v">00011011</span> = <span class="v">1B</span>
+<span class="c"># Row 2 (out 9–16):</span>
+9←15=0 10←6=0 11←21=0 12←10=0 13←23=0 14←19=0 15←12=1 16←4=0 → <span class="v">00000010</span> = <span class="v">02</span>
+<span class="c"># Row 3 (out 17–24):</span>
+17←26=1 18←8=1 19←16=1 20←7=0 21←27=1 22←20=1 23←13=1 24←2=1 → <span class="v">11101111</span> = <span class="v">EF</span>
+<span class="c"># Row 4 (out 25–32):</span>
+25←41=1 26←52=1 27←31=1 28←37=1 29←47=1 30←55=1 31←30=0 32←40=0 → <span class="v">11111100</span> = <span class="v">FC</span>
+<span class="c"># Row 5 (out 33–40):</span>
+33←51=0 34←45=1 35←33=1 36←48=1 37←44=0 38←49=0 39←39=0 40←56=0 → <span class="v">01110000</span> = <span class="v">70</span>
+<span class="c"># Row 6 (out 41–48):</span>
+41←34=0 42←53=1 43←46=1 44←42=1 45←50=0 46←36=0 47←29=1 48←32=0 → <span class="v">01110010</span> = <span class="v">72</span>
+
+K1 = <span class="r">1B 02 EF FC 70 72</span> ✓ textbook vector</div>
+
+<h2>All 16 subkeys (run your schedule against these)</h2>
+<table class="data"><tr><th>R</th><th>K (hex)</th><th>Sh</th><th>R</th><th>K (hex)</th><th>Sh</th></tr>
+<tr><td>1</td><td><code>1B02EFFC7072</code></td><td>1</td><td>9</td><td><code>FEC23342AE17</code></td><td>1</td></tr>
+<tr><td>2</td><td><code>79AED9DBC9E5</code></td><td>1</td><td>10</td><td><code>E954204B867D</code></td><td>2</td></tr>
+<tr><td>3</td><td><code>55FC8A42CF99</code></td><td>2</td><td>11</td><td><code>355F5200B5BC</code></td><td>2</td></tr>
+<tr><td>4</td><td><code>72ADD6DB351D</code></td><td>2</td><td>12</td><td><code>A6F3AEB2F3D8</code></td><td>2</td></tr>
+<tr><td>5</td><td><code>7CEC07EB53A8</code></td><td>2</td><td>13</td><td><code>64FDB1238758</code></td><td>2</td></tr>
+<tr><td>6</td><td><code>63A53E507B2F</code></td><td>2</td><td>14</td><td><code>D5FB03E22B81</code></td><td>2</td></tr>
+<tr><td>7</td><td><code>EC84B7F618BC</code></td><td>2</td><td>15</td><td><code>E960AF9129D7</code></td><td>2</td></tr>
+<tr><td>8</td><td><code>F78A3AC53656</code></td><td>2</td><td>16</td><td><code>1B9616787196</code></td><td>1</td></tr></table>
+<div class="exam-tip"><strong>Exam one-liner:</strong> PC-1 drops parity → split C₀/D₀ → LS per schedule → PC-2 compresses to 48. Reproduce C₀, C₁/D₁, and the 48-pick K₁ above and you own the key schedule.</div>
 
 <div class="prevnext">
 <a href="08-des-feistel.html"><div class="dir">← Prev</div><div class="t">08 · DES / Feistel</div></a>
