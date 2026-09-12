@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>12 · STS Station-to-Station Protocol — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Round1</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html">08B KeySch</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sts-protocol.html" class="active">12 STS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 12 · Protocol</div>
+<div class="topic-head"><div class="sec-num">12 — Protocol</div><h1>STS — Station-to-Station Protocol</h1>
+<p class="lede">Diffie-Hellman with signatures — the MITM killer. Mutual authentication + key confirmation in 3 messages.</p></div>
+
+<h2>How STS actually works — diagram</h2>
+<div class="diagram">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="stsAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1714"/></marker></defs>
+<circle cx="120" cy="40" r="30" fill="#1e3a5f"/><text x="120" y="46" font-family="Fraunces" font-size="13" fill="#fff" text-anchor="middle" font-weight="700">Alice</text>
+<text x="120" y="85" font-family="JetBrains Mono" font-size="10" fill="#1a1714" text-anchor="middle">a secret · (privA/pubA)</text>
+<circle cx="560" cy="40" r="30" fill="#2d5e3e"/><text x="560" y="46" font-family="Fraunces" font-size="13" fill="#fff" text-anchor="middle" font-weight="700">Bob</text>
+<text x="560" y="85" font-family="JetBrains Mono" font-size="10" fill="#1a1714" text-anchor="middle">b secret · (privB/pubB)</text>
+<line x1="150" y1="130" x2="530" y2="130" stroke="#1a1714" stroke-width="2" marker-end="url(#stsAr)"/>
+<rect x="240" y="108" width="200" height="20" fill="#fcfaf3" stroke="#d4cebf"/>
+<text x="340" y="122" font-family="JetBrains Mono" font-size="10" fill="#1a1714" text-anchor="middle">① A → B :  A = g^a</text>
+<rect x="400" y="150" width="220" height="52" fill="#fff" stroke="#2d5e3e" stroke-width="1.5" rx="6"/>
+<text x="510" y="169" font-family="Inter" font-size="11" fill="#1a1714" text-anchor="middle" font-weight="700">Bob: K = A^b = g^(ab)</text>
+<text x="510" y="185" font-family="JetBrains Mono" font-size="9" fill="#6b6660" text-anchor="middle">sB = Sig_privB(B ‖ A)</text>
+<line x1="530" y1="220" x2="150" y2="220" stroke="#1a1714" stroke-width="2" marker-end="url(#stsAr)"/>
+<rect x="205" y="226" width="270" height="20" fill="#fcfaf3" stroke="#d4cebf"/>
+<text x="340" y="240" font-family="JetBrains Mono" font-size="10" fill="#1a1714" text-anchor="middle">② B → A :  B = g^b ,  E_K(sB)</text>
+<rect x="60" y="258" width="220" height="52" fill="#fff" stroke="#1e3a5f" stroke-width="1.5" rx="6"/>
+<text x="170" y="277" font-family="Inter" font-size="11" fill="#1a1714" text-anchor="middle" font-weight="700">Alice: K = B^a = g^(ab)</text>
+<text x="170" y="293" font-family="JetBrains Mono" font-size="9" fill="#6b6660" text-anchor="middle">decrypt, Verify_pubB(sB, B‖A) ✓</text>
+<rect x="400" y="258" width="220" height="52" fill="#fff" stroke="#1e3a5f" stroke-width="1.5" rx="6"/>
+<text x="510" y="277" font-family="Inter" font-size="11" fill="#1a1714" text-anchor="middle" font-weight="700">sA = Sig_privA(A ‖ B)</text>
+<text x="510" y="293" font-family="JetBrains Mono" font-size="9" fill="#6b6660" text-anchor="middle">c3 = E_K(sA)</text>
+<line x1="150" y1="328" x2="530" y2="328" stroke="#1a1714" stroke-width="2" marker-end="url(#stsAr)"/>
+<rect x="240" y="334" width="200" height="20" fill="#fcfaf3" stroke="#d4cebf"/>
+<text x="340" y="348" font-family="JetBrains Mono" font-size="10" fill="#1a1714" text-anchor="middle">③ A → B :  E_K(sA)</text>
+<rect x="400" y="362" width="220" height="40" fill="#fff" stroke="#2d5e3e" stroke-width="1.5" rx="6"/>
+<text x="510" y="379" font-family="Inter" font-size="11" fill="#1a1714" text-anchor="middle" font-weight="700">Bob: Verify_pubA(sA, A‖B) ✓</text>
+<rect x="90" y="420" width="500" height="46" fill="#dde9df" stroke="#2d5e3e" stroke-width="2" rx="8"/>
+<text x="340" y="440" font-family="Fraunces" font-size="13" fill="#1a1714" text-anchor="middle" font-weight="700">Shared K ✓ + mutual authentication ✓</text>
+<text x="340" y="457" font-family="JetBrains Mono" font-size="9" fill="#2d5e3e" text-anchor="middle">MITM blocked: Mallory owns no privA/privB → her sigs fail verification</text>
+<text x="340" y="484" font-family="Inter" font-size="11" fill="#a0281d" text-anchor="middle" font-weight="700">Attacker substitutes M = g^m? → K₁≠K₂ AND Sig forgery impossible</text>
+<text x="340" y="502" font-family="JetBrains Mono" font-size="9" fill="#6b6660" text-anchor="middle">needs authentic pubA/pubB up front (certs/PKI) — else MITM persists</text>
+<text x="340" y="520" font-family="JetBrains Mono" font-size="9" fill="#6b6660" text-anchor="middle">ephemeral a,b per run → past K stays safe (forward secrecy)</text>
+</svg>
+<div class="cap">How STS actually works: unsigned DH value, signed+encrypted reply binding both values, signed+encrypted confirmation. Three messages, both sides verified.</div>
+</div>
+
+<div class="theorem"><div class="label">Assumptions (say these first in the exam)</div>
+Each side already holds the other's authentic signature-verification key (<code>pubA</code>, <code>pubB</code> via certificates/PKI). Signature scheme unforgeable. Ephemerals <code>a, b</code> fresh per run and erased after.</div>
+
+<h2>Algorithm — 3 messages with math</h2>
+<div class="steps">
+<div class="step"><strong>A → B : A = g^a.</strong> Plain ephemeral DH public, no auth yet.
+<div class="math">A = g^a mod p</div></div>
+<div class="step"><strong>B → A : B = g^b, E_K(Sig_B(B ‖ A)).</strong> Bob derives <code>K</code>, signs <em>both</em> values (order matters — responder signs B first), encrypts the signature under <code>K</code>.
+<div class="math">B = g^b mod p
+K = A^b = g^(ab) mod p   <span class="c"># e.g. p=23,g=5: A=8,B=19 → K=2 both sides (p.10)</span>
+sB = Sig_privB(B ‖ A)      <span class="c"># binds responder value first</span>
+B → A :  B ,  E_K(sB)</div></div>
+<div class="step"><strong>A → B : E_K(Sig_A(A ‖ B)).</strong> Alice derives the same <code>K</code>, verifies <code>sB</code> with <code>pubB</code>, then signs in mirror order.
+<div class="math">K = B^a = g^(ab) mod p
+check Verify_pubB(sB, B ‖ A) ?= ✓   <span class="c"># fails → abort</span>
+sA = Sig_privA(A ‖ B)
+A → B :  E_K(sA)   →  Bob checks Verify_pubA(sA, A ‖ B) ?= ✓</div></div>
+</div>
+<div class="box green"><div class="label">Why each piece exists</div>
+<ul style="margin:6px 0 0 16px"><li><strong>Signatures over (own ‖ peer)</strong> prove who sent which value and block substitution — Mallory's <code>M</code> arrives unsigned/forged → verification fails.</li><li><strong>Encryption under K</strong> gives key confirmation: only someone holding <code>K</code> could have produced the ciphertext.</li><li><strong>Different signing orders</strong> stop reflection/replay of message ② as message ③.</li></ul></div>
+
+<h2>Why MITM dies here (1-line kill)</h2>
+<div class="math"><span class="c"># Mallory substitutes M=g^m, gets K1 with Alice, K2 with Bob — as on p.11.</span>
+<span class="c"># But message ② demands E_K1(Sig_B(...)) and Mallory has no privB:</span>
+forge Sig_privB(B ‖ M)  →  <span class="r">impossible (unforgeable sig)</span>
+forward old sB under wrong K → <span class="r">decryption/verification fails</span></div>
+
+<h2>Property table</h2>
+<table class="data"><tr><th>Property</th><th>Provided By</th></tr>
+<tr><td>Mutual authentication</td><td>Signatures verified against pre-authenticated pubA/pubB</td></tr>
+<tr><td>Key confirmation</td><td>Sigs transported encrypted under the fresh K</td></tr>
+<tr><td>Forward secrecy</td><td>Ephemeral a,b erased; later sig-key leak won't recover past K</td></tr>
+<tr><td>MITM resistance</td><td>Substituted values break signature verification</td></tr>
+<tr><td>Replay/reflection resistance</td><td>Fresh ephemerals + asymmetric signing order (B‖A vs A‖B)</td></tr></table>
+<div class="box gold"><div class="label">Limits (examiners love these)</div>
+No identity hiding — <code>A, B</code> and certificates travel in clear in basic STS (SIGMA/IKEv2 fix this with extra encryption). Needs PKI: with unauthenticated keys, STS collapses back to MITM-able DH. Timestamps aren't used — freshness comes from random ephemerals.</div>
+<div class="exam-tip"><strong>Exam one-liner:</strong> STS = DH + mutual signatures over (own‖peer) carried encrypted under the fresh K — 3 messages, mutual auth, key confirmation, forward secrecy.</div>
+
+<div class="prevnext">
+<a href="11-mitm.html"><div class="dir">← Prev</div><div class="t">11 · MITM</div></a>
+<a href="13-access-control-models.html"><div class="dir">Next →</div><div class="t">13 · Access Control Models</div></a>
+</div>
+</main>
+<footer class="site-footer"><div>Cryptography · CramSheet · <a href="index.html">Home</a> · Developed by <a href="https://github.com/shakkhorpaul50-ai">Shakkhor Paul</a></div></footer>
+</body>
+</html>
