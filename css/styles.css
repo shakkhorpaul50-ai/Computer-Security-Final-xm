@@ -107,7 +107,9 @@ table.data tr:nth-child(even) td{background:rgba(0,0,0,.025)}
 .prevnext a:hover{border-color:var(--accent)}
 .prevnext .dir{font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:800}
 .prevnext .t{font-family:'Fraunces',serif;font-weight:700;font-size:16px}
-.site-footer{border-top:1px solid var(--line);margin-top:20px;padding:22px 20px;text-align:center;color:var(--muted);font-size:12.5px}
+.site-footer{background:var(--nav);color:#e8e2d6;margin-top:20px;padding:26px 20px;text-align:center;font-size:13.5px;border-top:3px solid var(--accent)}
+.site-footer a{color:#ff8a7a;font-weight:700;text-decoration:underline}
+.site-footer a:hover{color:#fff}
 
 @media(max-width:760px){
   .nav-links{display:none;position:absolute;top:58px;left:0;right:0;background:var(--nav);flex-direction:column;padding:10px 16px 16px}
