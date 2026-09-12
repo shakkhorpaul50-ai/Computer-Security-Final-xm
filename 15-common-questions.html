@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15 · Common Exam Q&A — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Round1</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html">08B KeySch</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sts-protocol.html">12 STS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a><a href="15-common-questions.html" class="active">15 Q&A</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / 15 · Exam Q&A</div>
+<div class="topic-head"><div class="sec-num">15 — Revision</div><h1>Common Exam Questions + Answers</h1>
+<p class="lede">The ten most-asked comparisons — each with 10 differences and 10 exam key points. Learn the tables, quote the one-liners.</p></div>
+
+<!-- Q1 -->
+<h2>Q1 · RBAC vs ABAC</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>RBAC</th><th>ABAC</th></tr>
+<tr><td>1</td><td>Decision basis</td><td>User's <strong>role</strong> only</td><td><strong>Attributes</strong> of subject, object, action, environment</td></tr>
+<tr><td>2</td><td>Decision time</td><td>At role-assignment time (static)</td><td>At request time (dynamic evaluation)</td></tr>
+<tr><td>3</td><td>Context awareness</td><td>None — same role always same access</td><td>Time, location, device posture factored in</td></tr>
+<tr><td>4</td><td>Granularity</td><td>Coarse (whole role)</td><td>Fine-grained (single attribute combinations)</td></tr>
+<tr><td>5</td><td>Scalability problem</td><td><strong>Role explosion</strong> when rules get fine-grained</td><td>Avoids it — policies compose via Boolean logic</td></tr>
+<tr><td>6</td><td>Audit question</td><td>Easy: "who has role X?"</td><td>Hard: must simulate policies over attribute space</td></tr>
+<tr><td>7</td><td>Policy language</td><td>Role→permission matrix</td><td>XACML / Rego / Cedar attribute expressions</td></tr>
+<tr><td>8</td><td>Change handling</td><td>Re-assign roles manually</td><td>Automatic — attribute change flips decisions instantly</td></tr>
+<tr><td>9</td><td>Example</td><td>"Editors can publish"</td><td>"Doctors read own-dept records, weekdays 07–19"</td></tr>
+<tr><td>10</td><td>Relation</td><td colspan="2">RBAC is a special case of ABAC where the only attribute is "role"</td></tr></table>
+<ol><li>RBAC = user → role → permission; ABAC = policy(subject, object, env, action).</li><li>ABAC's four sources: subject, object, action, environment.</li><li>XACML flow: PEP intercepts, PIP supplies attributes, PDP decides, PAP manages.</li><li>PDP verdicts: Permit / Deny / NotApplicable / Indeterminate — fail closed.</li><li>Combining: deny-overrides is the safe default.</li><li>RBAC audits easily; ABAC needs policy simulation to answer "who can access X".</li><li>ABAC is dynamic — no stale role assignments.</li><li>Context examples: business hours, managed device, external network.</li><li>Role explosion is the classic RBAC failure at scale.</li><li>Exam line: roles say <em>who you are</em>, attributes say <em>everything about the request</em>.</li></ol>
+
+<!-- Q2 -->
+<h2>Q2 · MAC (Mandatory) vs DAC (Discretionary)</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>MAC</th><th>DAC</th></tr>
+<tr><td>1</td><td>Who decides</td><td>The <strong>system</strong> (central policy)</td><td>The resource <strong>owner</strong></td></tr>
+<tr><td>2</td><td>Basis</td><td>Labels: clearance vs classification</td><td>Identity + ACL entries</td></tr>
+<tr><td>3</td><td>Formal model</td><td>Bell–LaPadula (no-read-up, no-write-down)</td><td>Access matrix / ACLs, no lattice</td></tr>
+<tr><td>4</td><td>Trojan-horse resistance</td><td>Strong — malware can't relabel</td><td>Weak — malware inherits owner's rights</td></tr>
+<tr><td>5</td><td>Flexibility</td><td>Rigid, users can't override</td><td>Flexible, owner grants at will</td></tr>
+<tr><td>6</td><td>Admin overhead</td><td>High (label everything, clear everyone)</td><td>Low (owners self-manage)</td></tr>
+<tr><td>7</td><td>Commercial fit</td><td>Poor — built for military secrecy</td><td>Good — matches files, sharing, collaboration</td></tr>
+<tr><td>8</td><td>Granting rights</td><td>Only security admin via clearance</td><td>Owner can delegate further (leakage risk)</td></tr>
+<tr><td>9</td><td>Examples</td><td>SELinux enforcing, military Top Secret systems</td><td>Unix rwx bits, Google-Docs "share" button</td></tr>
+<tr><td>10</td><td>Info flow</td><td>Up-only lattice (Secret → Top Secret)</td><td>Any direction the owner permits</td></tr></table>
+<ol><li>MAC = system says; DAC = owner says.</li><li>BLP rules: no-read-up (confidentiality), no-write-down (no leaks down).</li><li>Biba mirrors BLP for integrity; Clark-Wilson adds well-formed transactions.</li><li>DAC's fatal flaw: permission leakage via Trojans and delegation chains.</li><li>MAC's fatal flaw: rigidity — every object needs a label, every user a clearance.</li><li>Labels form a lattice: levels × compartments (e.g. {NATO}).</li><li>Unix permissions and ACLs are textbook DAC.</li><li>SELinux/AppArmor are textbook MAC on Linux.</li><li>Revocation in DAC is hard (copies propagate); in MAC it's central.</li><li>Exam line: MAC stops Trojans, DAC serves collaboration — pick by threat model.</li></ol>
+
+<!-- Q3 -->
+<h2>Q3 · AES vs DES</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>AES</th><th>DES</th></tr>
+<tr><td>1</td><td>Block size</td><td><strong>128 bits</strong></td><td><strong>64 bits</strong> (birthday bound at 2³² blocks)</td></tr>
+<tr><td>2</td><td>Key size</td><td>128 / 192 / 256 bits</td><td><strong>56 bits</strong> effective (8 parity bits)</td></tr>
+<tr><td>3</td><td>Rounds</td><td>10 / 12 / 14 by key size</td><td>16 Feistel rounds</td></tr>
+<tr><td>4</td><td>Structure</td><td><strong>SPN</strong> (SubBytes/ShiftRows/MixColumns)</td><td><strong>Feistel</strong> network (F need not invert)</td></tr>
+<tr><td>5</td><td>S-boxes</td><td>One 8-bit S-box (inverse + affine)</td><td>Eight 6→4-bit S-boxes + E-expansion + P-box</td></tr>
+<tr><td>6</td><td>Brute force</td><td>2¹²⁸ — infeasible</td><td>2⁵⁶ — broken 1998 (Deep Crack, ~22 h)</td></tr>
+<tr><td>7</td><td>Status</td><td>Secure, NIST standard since 2001</td><td>Withdrawn; 3DES as stopgap, now also retired</td></tr>
+<tr><td>8</td><td>Speed</td><td>Fast in software + AES-NI hardware</td><td>Slower, bit-permutation heavy</td></tr>
+<tr><td>9</td><td>Key schedule</td><td>RotWord/SubWord/Rcon, 44/52/60 words</td><td>PC-1 → 16 LS shifts → PC-2, 16×48-bit keys</td></tr>
+<tr><td>10</td><td>Final round</td><td>Omits MixColumns (decryption symmetry)</td><td>Ends with swap + IP⁻¹</td></tr></table>
+<ol><li>AES-128 = 10 rounds; more key bits = more rounds (12/14).</li><li>DES's 56-bit key is its death sentence — memorise 2⁵⁶ and Deep Crack 1998.</li><li>SPN needs invertible layers; Feistel needs none (XOR trick, p.08).</li><li>AES S-box = GF inverse + affine; DES strength = its 8 S-boxes.</li><li>64-bit blocks leak after ~2³² blocks (Sweet32) — second DES killer.</li><li>3DES = EDE with 2–3 keys, 64-bit blocks remain — only a bandage.</li><li>FIPS vectors: AES Round-1 → <code>a4 68 6b 02…</code>; DES K₁ → <code>1B02EFFC7072</code>.</li><li>AES-NI makes AES ~10× faster than DES in practice.</li><li>Grover halves symmetric strength: AES-128 ≈ 64-bit quantum — prefer AES-256 long-term.</li><li>Exam line: DES taught us Feistel; AES replaced everything with SPN + big keys.</li></ol>
+
+<!-- Q4 -->
+<h2>Q4 · AES vs DES vs RSA</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>AES</th><th>DES</th><th>RSA</th></tr>
+<tr><td>1</td><td>Family</td><td>Symmetric block</td><td>Symmetric block</td><td><strong>Asymmetric</strong> (public-key)</td></tr>
+<tr><td>2</td><td>Key sizes</td><td>128/192/256-bit secret</td><td>56-bit secret</td><td>2048/3072-bit modulus</td></tr>
+<tr><td>3</td><td>Hard problem</td><td>None (brute force only)</td><td>None (brute force only)</td><td><strong>Factoring</strong> n = pq</td></tr>
+<tr><td>4</td><td>Speed</td><td>Very fast (GB/s)</td><td>Moderate</td><td>~1000× slower — bulk data impossible</td></tr>
+<tr><td>5</td><td>Key distribution</td><td>Needs pre-shared secret</td><td>Same problem</td><td>Solves it: publish (e,n), keep d</td></tr>
+<tr><td>6</td><td>Primary use</td><td>Bulk encryption (TLS records)</td><td>Legacy only</td><td>Key exchange, signatures, certs</td></tr>
+<tr><td>7</td><td>Security status</td><td>Secure</td><td><strong>Broken</strong></td><td>Secure at 2048+ (classical)</td></tr>
+<tr><td>8</td><td>Signatures?</td><td>No</td><td>No</td><td>Yes (swap e/d roles)</td></tr>
+<tr><td>9</td><td>Padding/modes</td><td>Needs mode (GCM/CBC) + nonce</td><td>Same + Sweet32 limits</td><td>Needs OAEP/PSS — textbook RSA broken</td></tr>
+<tr><td>10</td><td>Quantum outlook</td><td>Halved (Grover) — use 256-bit</td><td>Dead anyway</td><td><strong>Killed by Shor</strong> → migrate to PQC</td></tr></table>
+<ol><li>Symmetric = one secret, fast; asymmetric = keypair, slow but solves distribution.</li><li>Real systems are hybrid: RSA/DH move the key, AES moves the data (TLS).</li><li>Never compare "56-bit vs 2048-bit" directly — different math, different units.</li><li>RSA can sign; no symmetric cipher can (needs MAC/signature layer).</li><li>Textbook RSA without OAEP/PSS is insecure — always name the padding.</li><li>DES is the "broken" answer to any "which is secure" question.</li><li>Factoring is sub-exponential; AES brute force is fully exponential.</li><li>Shor breaks RSA/DH/ECC; Grover only halves AES — know which is which.</li><li>2048-bit RSA ≈ 112-bit symmetric strength (NIST equivalence).</li><li>Exam line: AES encrypts fast, RSA distributes keys and signs, DES is history.</li></ol>
+
+<!-- Q5 -->
+<h2>Q5 · RSA vs Diffie-Hellman</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>RSA</th><th>Diffie-Hellman</th></tr>
+<tr><td>1</td><td>Purpose</td><td>Encryption <strong>+ signatures</strong></td><td><strong>Key agreement only</strong> — encrypts nothing itself</td></tr>
+<tr><td>2</td><td>Hard problem</td><td><strong>Factoring</strong> n = pq</td><td><strong>Discrete log</strong> a = log_g A</td></tr>
+<tr><td>3</td><td>What travels</td><td>Ciphertext c = m^e mod n</td><td>Publics A = g^a, B = g^b — secret K never sent</td></tr>
+<tr><td>4</td><td>Keys</td><td>Long-term keypair (e,n)/(d,n)</td><td>Ephemeral secrets a,b + public params (p,g)</td></tr>
+<tr><td>5</td><td>Authentication</td><td>Built-in via certs + signatures</td><td><strong>None</strong> — needs STS/signatures (p.11–12)</td></tr>
+<tr><td>6</td><td>Forward secrecy</td><td>RSA key-transport: no (leaked d opens past traffic)</td><td>Ephemeral DHE: yes (erase a,b)</td></tr>
+<tr><td>7</td><td>Core equation</td><td>c = m^e, m = c^d, ed ≡ 1 mod φ</td><td>K = B^a = A^b = g^(ab) mod p</td></tr>
+<tr><td>8</td><td>Worked anchor</td><td>(3,55)/(27,55), m=14 ↔ c=49</td><td>p=23,g=5: A=8,B=19,K=2</td></tr>
+<tr><td>9</td><td>Typical use</td><td>Certificates, signatures, key wrap</td><td>TLS-DHE/ECDHE session keys</td></tr>
+<tr><td>10</td><td>Quantum fate</td><td>Broken by Shor</td><td>Broken by Shor (discrete log too)</td></tr></table>
+<ol><li>DH establishes a key; RSA moves data or signs — different jobs.</li><li>DH's security = discrete log; RSA's = factoring — both fall to Shor.</li><li>Plain DH is anonymous → MITM gives K₁≠K₂ (p.11); fix with STS (p.12).</li><li>Ephemeral DH gives forward secrecy; static RSA transport doesn't.</li><li>Signatures belong to RSA (σ = H(m)^d); DH has no signing mode.</li><li>Both need parameter hygiene: RSA ≥2048-bit, DH safe primes + validate peer values.</li><li>Small-subgroup attacks hit sloppy DH; small-e/no-padding hits sloppy RSA.</li><li>Modern TLS uses ECDHE (DH over elliptic curves) + RSA/ECDSA signatures — both together.</li><li>Key confirmation in DH comes only via STS/SIGMA-style follow-ups.</li><li>Exam line: RSA <em>speaks</em> (encrypts/signs), DH <em>agrees</em> (shared secret, needs a voice = signatures).</li></ol>
+
+<!-- Q6 -->
+<h2>Q6 · Monoalphabetic vs Polyalphabetic</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>Monoalphabetic</th><th>Polyalphabetic</th></tr>
+<tr><td>1</td><td>Definition</td><td>One fixed substitution alphabet</td><td>Many rotating alphabets (key decides which)</td></tr>
+<tr><td>2</td><td>Same-letter mapping</td><td>Always same ciphertext letter</td><td>Varies with position (A→L here, →X there)</td></tr>
+<tr><td>3</td><td>Examples</td><td>Caesar, simple substitution, (Playfair is digraph-mono)</td><td>Vigenère, autokey, Enigma rotors</td></tr>
+<tr><td>4</td><td>Keyspace</td><td>Caesar 25; substitution 26! ≈ 2⁸⁸</td><td>26^L for length-L key (grows with key)</td></tr>
+<tr><td>5</td><td>Frequency analysis</td><td>Breaks directly (~25–50 letters)</td><td>Flat singles — need key length first</td></tr>
+<tr><td>6</td><td>Breaking method</td><td>Count → map E/T/A → digraphs → THE</td><td>Kasiski (repeats→GCD) or Friedman (IC) → L Caesars</td></tr>
+<tr><td>7</td><td>Key-length role</td><td>None (single alphabet)</td><td>Everything: L unknown = hard, L known = L easy Caesars</td></tr>
+<tr><td>8</td><td>History</td><td>Broken by Arab scholars ~9th c.</td><td>"Indéchiffrable" 300 yrs, broken 1863 (Kasiski)</td></tr>
+<tr><td>9</td><td>Ciphertext needed</td><td>Tens of letters</td><td>Hundreds (statistics per sub-alphabet)</td></tr>
+<tr><td>10</td><td>Core lesson</td><td>Big keyspace ≠ security (26! still falls)</td><td>Periodicity is the fatal flaw (→ one-time pad needs L = message)</td></tr></table>
+<ol><li>Mono = 1 alphabet; poly = L interleaved Caesars (Vigenère formula p.05).</li><li>Doubles/word patterns survive mono; poly smears them.</li><li>Kasiski: repeated blocks → distances → GCD ≈ L.</li><li>Friedman: IC ≈ 0.066 English vs 0.038 random → estimate L.</li><li>Once L is known, attack each of the L columns as Caesar.</li><li>Running key as long as the message = one-time pad = unbreakable (if random, single-use).</li><li>Playfair raises symbols 26→625 digraphs but stays mono at digraph level.</li><li>Enigma = polyalphabetic with huge period — broken via period + crib flaws.</li><li>Exam trap: "26! therefore secure" — false, statistics bypass keyspace.</li><li>Exam line: mono preserves statistics; poly hides them until the period leaks.</li></ol>
+
+<!-- Q7 -->
+<h2>Q7 · Stream Cipher vs Block Cipher</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>Stream Cipher</th><th>Block Cipher</th></tr>
+<tr><td>1</td><td>Unit</td><td>Bit/byte at a time</td><td>Fixed blocks (64/128-bit)</td></tr>
+<tr><td>2</td><td>Core idea</td><td>Keystream ⊕ plaintext (like OTP approximation)</td><td>Rounds of substitution + permutation</td></tr>
+<tr><td>3</td><td>Examples</td><td>ChaCha20, Trivium (RC4 retired)</td><td>AES, DES, 3DES</td></tr>
+<tr><td>4</td><td>Padding</td><td>Never needed</td><td>Required (except CTR/streaming modes)</td></tr>
+<tr><td>5</td><td>IV / nonce</td><td>Mandatory per message — reuse = catastrophe</td><td>IV per message in CBC/CTR/GCM modes</td></tr>
+<tr><td>6</td><td>Error propagation</td><td>1 flipped bit = 1 flipped bit (malleable!)</td><td>1 flipped bit = whole block garbled (CBC/ECB)</td></tr>
+<tr><td>7</td><td>Synchronisation</td><td>Must stay in sync (lost bit kills stream)</td><td>Self-syncing per block</td></tr>
+<tr><td>8</td><td>Speed/profile</td><td>Very fast, tiny hardware, no padding overhead</td><td>AES-NI very fast; needs mode machinery</td></tr>
+<tr><td>9</td><td>Typical uses</td><td>TLS ChaCha20, mobile, real-time media</td><td>Disk, TLS-AES-GCM, general encryption</td></tr>
+<tr><td>10</td><td>Classic failure</td><td>Nonce/keystream reuse (two-time pad)</td><td>ECB penguin — equal blocks show patterns</td></tr></table>
+<ol><li>Stream = OTP with pseudorandom keystream; security lives in keystream + nonce discipline.</li><li>Never reuse (key, nonce) in a stream cipher — XOR of two ciphertexts kills both.</li><li>Block ciphers need modes: ECB (never), CBC (needs MAC), CTR/GCM (modern).</li><li>AEAD (AES-GCM, ChaCha20-Poly1305) adds integrity — raw stream/block gives none.</li><li>Malleability: flipping ciphertext bits flips plaintext bits predictably in streams/CTR.</li><li>Block-cipher modes turn blocks into streams (CTR) or chains (CBC).</li><li>RC4/WEP is the canonical stream-cipher failure (biased keystream + IV reuse).</li><li>ChaCha20-Poly1305 is the modern stream answer (TLS 1.3).</li><li>Disk encryption uses wide-block modes (XTS), not raw ECB.</li><li>Exam line: streams need nonces, blocks need modes — both need authentication.</li></ol>
+
+<!-- Q8 -->
+<h2>Q8 · Symmetric vs Asymmetric Encryption</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>Symmetric</th><th>Asymmetric</th></tr>
+<tr><td>1</td><td>Keys</td><td><strong>One shared secret</strong></td><td><strong>Public + private pair</strong></td></tr>
+<tr><td>2</td><td>Speed</td><td>Fast (GB/s with AES-NI)</td><td>~1000× slower (big-number math)</td></tr>
+<tr><td>3</td><td>Key distribution</td><td>Hard — secret must pre-exist (n² keys for n users)</td><td>Easy — publish public key</td></tr>
+<tr><td>4</td><td>Key sizes</td><td>128–256-bit secret</td><td>2048-bit+ (different security units)</td></tr>
+<tr><td>5</td><td>Examples</td><td>AES, ChaCha20, DES (dead)</td><td>RSA, DH, ECDH, ECDSA</td></tr>
+<tr><td>6</td><td>Authentication</td><td>No (MAC needed on top)</td><td>Yes — signatures + certs</td></tr>
+<tr><td>7</td><td>Non-repudiation</td><td>Impossible (both holders can forge MACs)</td><td>Possible (only private holder signs)</td></tr>
+<tr><td>8</td><td>Scaling</td><td>n users need ~n²/2 pairwise keys</td><td>n keypairs + directory of publics</td></tr>
+<tr><td>9</td><td>Real-world use</td><td>Bulk data (TLS records, disk)</td><td>Handshake, signatures, PKI</td></tr>
+<tr><td>10</td><td>Quantum impact</td><td>Halved strength (Grover)</td><td>Broken (Shor) — PQC migration</td></tr></table>
+<ol><li>One secret vs keypair is the entire distinction — everything follows.</li><li>n² scaling is why the internet can't run on symmetric alone.</li><li>Hybrid encryption (TLS): asymmetric moves the key, symmetric moves the data.</li><li>Kerckhoffs applies to both: secrecy in the key, never the algorithm.</li><li>Symmetric + MAC = authenticated; asymmetric + hash = signed.</li><li>2048-bit RSA ≈ 112-bit symmetric — memorise one equivalence row.</li><li>Private keys never travel; public keys travel inside certificates.</li><li>Key exchange (DH) and encryption (RSA) are different asymmetric jobs.</li><li>Post-quantum: Kyber/Dilithium replace RSA/DH/ECC; AES-256 stays.</li><li>Exam line: asymmetric distributes trust, symmetric moves bytes.</li></ol>
+
+<!-- Q9 -->
+<h2>Q9 · Hash vs MAC vs Digital Signature</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>Hash</th><th>MAC</th><th>Signature</th></tr>
+<tr><td>1</td><td>Keyed?</td><td>No</td><td>Yes (shared secret)</td><td>Yes (private signs, public verifies)</td></tr>
+<tr><td>2</td><td>Reversible?</td><td>No</td><td>No</td><td>No (verify-only with public key)</td></tr>
+<tr><td>3</td><td>Provides</td><td>Integrity <em>detection</em></td><td>Integrity + authenticity</td><td>Integrity + auth + <strong>non-repudiation</strong></td></tr>
+<tr><td>4</td><td>Verifier needs</td><td>Nothing (recompute)</td><td>The shared key</td><td>Signer's public key/cert</td></tr>
+<tr><td>5</td><td>Examples</td><td>SHA-256, SHA-3, BLAKE2</td><td>HMAC-SHA256, Poly1305</td><td>RSA-PSS, ECDSA, Dilithium</td></tr>
+<tr><td>6</td><td>Output</td><td>Digest (256-bit)</td><td>Tag (128–256-bit)</td><td>Signature (2048-bit RSA / 512-bit ECDSA)</td></tr>
+<tr><td>7</td><td>Repudiation?</td><td>N/A</td><td>Repudiable (either key-holder forged it)</td><td>Non-repudiable (only signer holds d)</td></tr>
+<tr><td>8</td><td>Broken example</td><td>MD5/SHA-1 collisions</td><td>CBC-MAC on variable lengths (no length prefix)</td><td>Textbook RSA w/o PSS, ECDSA nonce reuse</td></tr>
+<tr><td>9</td><td>Speed</td><td>Fastest</td><td>Fast (2 hashes)</td><td>Slow (modular exponentiation)</td></tr>
+<tr><td>10</td><td>Use when…</td><td>Checksums, commitments, Merkle trees</td><td>Two parties share a key (TLS records)</td><td>Public verifiability / legal proof needed</td></tr></table>
+<ol><li>Hash detects change; MAC proves <em>a</em> key-holder sent it; signature proves <em>which one</em>.</li><li>HMAC = H((K⊕opad) ‖ H((K⊕ipad) ‖ m)) — two nested hashes.</li><li>Birthday bound: n-bit hash = 2^(n/2) collision effort (p.02).</li><li>Sign-then-hash flow: σ = Sign(H(m)), verify H(m) ≟ Verify(σ).</li><li>Anyone can hash — so hashes alone never authenticate.</li><li>ECDSA leaks d if the per-signature nonce repeats or is biased (PS3 hack).</li><li>Certificates = CA's signature over (identity, public key).</li><li>TLS 1.3 uses HMAC-style HKDF + signatures for handshake auth.</li><li>Password storage wants slow salted hashes (bcrypt/Argon2), not SHA-256.</li><li>Exam line: unkeyed → keyed-shared → keyed-public = hash → MAC → signature.</li></ol>
+
+<!-- Q10 -->
+<h2>Q10 · Substitution vs Transposition (Classical)</h2>
+<table class="data"><tr><th>#</th><th>Aspect</th><th>Substitution</th><th>Transposition</th></tr>
+<tr><td>1</td><td>What changes</td><td><strong>Letters</strong> (A→Q)</td><td><strong>Positions</strong> (read order shuffled)</td></tr>
+<tr><td>2</td><td>Letter multiset</td><td>Changed (E becomes S)</td><td><strong>Preserved</strong> — same letters, new order</td></tr>
+<tr><td>3</td><td>Frequency profile</td><td>Mapped but intact (breakable)</td><td>Identical counts — frequencies useless</td></tr>
+<tr><td>4</td><td>Examples</td><td>Caesar, monoalphabetic, Vigenère, Playfair</td><td>Rail fence, columnar, route ciphers</td></tr>
+<tr><td>5</td><td>Key form</td><td>Alphabet permutation / keyword shifts</td><td>Permutation of positions / column order</td></tr>
+<tr><td>6</td><td>Keyspace</td><td>26! (mono) / 26^L (Vigenère)</td><td>w! for width-w columnar (small!)</td></tr>
+<tr><td>7</td><td>Attack</td><td>Frequency analysis (mono) / Kasiski (poly)</td><td>Anagramming + digraph-position stats</td></tr>
+<tr><td>8</td><td>Digraph fate</td><td>TH→?? (mapped pairs)</td><td>TH split apart but both survive</td></tr>
+<tr><td>9</td><td>Modern descendant</td><td>S-boxes (SubBytes, DES S-boxes)</td><td>P-boxes (ShiftRows, DES-P, IP)</td></tr>
+<tr><td>10</td><td>Combined</td><td colspan="2">Product ciphers alternate both: DES/AES = substitution + transposition × rounds (confusion + diffusion)</td></tr></table>
+<ol><li>Substitution confuses <em>what</em>; transposition diffuses <em>where</em> — Shannon's pair.</li><li>Rail fence: zigzag rows then read rows; columnar: write rows, read columns by key order.</li><li>Transposition preserves multiset — frequency counting fails, anagramming wins.</li><li>Columnar with width w has only w! keys — tiny vs 26!.</li><li>Double columnar was field-grade (WWI–WWII) — product of two transpositions.</li><li>Playfair substitutes digraphs (625 symbols) — still substitution family.</li><li>DES/AES round = S-box (substitution) + permutation (transposition) — classical ideas, modern math.</li><li>Homophonic substitution (many→one symbols) flattens frequencies — bridge between families.</li><li> ECB-mode pattern leak is a transposition-style failure (positions leak).</li><li>Exam line: substitute to confuse, transpose to diffuse, iterate both to be secure.</li></ol>
+
+<div class="exam-tip"><strong>How to use this page in the exam:</strong> for any "compare X vs Y" question, write the 10-row table first (marks for structure), then 3–4 key points as sentences. The one-liners at each table's row 10 / list end are your closing lines.</div>
+
+<div class="prevnext">
+<a href="14-abac.html"><div class="dir">← Prev</div><div class="t">14 · ABAC</div></a>
+<a href="index.html"><div class="dir">Next →</div><div class="t">Home</div></a>
+</div>
+</main>
+<footer class="site-footer"><div>Cryptography · CramSheet · <a href="index.html">Home</a> · Developed by <a href="https://github.com/shakkhorpaul50-ai">Shakkhor Paul</a></div></footer>
+</body>
+</html>
