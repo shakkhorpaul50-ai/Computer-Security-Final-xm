@@ -117,8 +117,15 @@ s'3=22⊕27⊕98⊕d1: 22⊕27=00000101=<span class="v">05</span>; 98⊕d1=01001
 81  19  d3  26
 e5  9a  7a  4c</div>
 
-<h2>Step 4 · AddRoundKey — every byte (K₁ column-wise)</h2>
-<div class="math"><span class="c"># K1 columns: col0=a0 fa fe 17 | col1=88 54 2c b1 | col2=23 a3 39 39 | col3=2a 6c 76 05</span>
+<h2>Step 4 · AddRoundKey — K₁ columns built step-by-step, then every byte</h2>
+<div class="math"><span class="c"># K1 = W4 ‖ W5 ‖ W6 ‖ W7 (4 words → 4 columns, column-major):</span>
+col0 = W4 = <span class="h">a0 fa fe 17</span>   <span class="c"># a0=2b⊕8b fa=7e⊕84 fe=15⊕eb 17=16⊕01</span>
+col1 = W5 = <span class="h">88 54 2c b1</span>   <span class="c"># 88=28⊕a0 54=ae⊕fa 2c=d2⊕fe b1=a6⊕17</span>
+col2 = W6 = <span class="h">23 a3 39 39</span>   <span class="c"># 23=ab⊕88 a3=f7⊕54 39=15⊕2c 39=88⊕b1</span>
+col3 = W7 = <span class="h">2a 6c 76 05</span>   <span class="c"># 2a=09⊕23 6c=cf⊕a3 76=4f⊕39 05=3c⊕39</span>
+<span class="c"># As 4x4 (rows): a0 88 23 2a / fa 54 a3 6c / fe 2c 39 76 / 17 b1 39 05</span>
+
+<span class="c"># XOR state ⊕ K1, byte by byte:</span>
 col0: 04⊕a0=<span class="r">a4</span> (00000100⊕10100000=10100100)  66⊕fa=<span class="r">9c</span>  81⊕fe=<span class="r">7f</span>  e5⊕17=<span class="r">f2</span>
 col1: e0⊕88=<span class="r">68</span>  cb⊕54=<span class="r">9f</span>  19⊕2c=<span class="r">35</span>  9a⊕b1=<span class="r">2b</span>
 col2: 48⊕23=<span class="r">6b</span>  f8⊕a3=<span class="r">5b</span>  d3⊕39=<span class="r">ea</span>  7a⊕39=<span class="r">43</span>

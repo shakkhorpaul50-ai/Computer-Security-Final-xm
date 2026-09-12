@@ -114,9 +114,12 @@ Column 3: <span class="r">28 06 26 4c</span></div>
 81  19  d3  26
 e5  9a  7a  4c</div>
 
-<h2>Step 4 · AddRoundKey (K₁)</h2>
+<h2>Step 4 · AddRoundKey (K₁) — columns built, then XORed</h2>
 <p>Round-1 subkey from key expansion: <code>K₁ = a0fafe17 88542cb1 23a33939 2a6c7605</code></p>
-<div class="math"><span class="c">// K1 as 4x4 (column-major): a0 88 23 2a / fa 54 a3 6c / fe 2c 39 76 / 17 b1 39 05</span>
+<div class="math"><span class="c"># K1 columns (words → columns):</span>
+col0 = W4 = <span class="h">a0 fa fe 17</span> | col1 = W5 = <span class="h">88 54 2c b1</span>
+col2 = W6 = <span class="h">23 a3 39 39</span> | col3 = W7 = <span class="h">2a 6c 76 05</span>
+<span class="c"># As 4x4 (column-major): a0 88 23 2a / fa 54 a3 6c / fe 2c 39 76 / 17 b1 39 05</span>
 Row 0: 04⊕a0 e0⊕88 48⊕23 28⊕2a = <span class="r">a4 68 6b 02</span>
 Row 1: 66⊕fa cb⊕54 f8⊕a3 06⊕6c = <span class="r">9c 9f 5b 6a</span>
 Row 2: 81⊕fe 19⊕2c d3⊕39 26⊕76 = <span class="r">7f 35 ea 50</span>
