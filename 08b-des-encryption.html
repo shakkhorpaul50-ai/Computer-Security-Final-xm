@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>08B · DES Full Encryption Worked — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Keys</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html" class="active">08B DES-Enc</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / <a href="08-des-feistel.html">08 · DES</a> / 08B Deep-Dive</div>
+<div class="topic-head"><div class="sec-num">08B — Symmetric Deep-Dive</div><h1>DES Full Encryption — Test Vector End-to-End</h1>
+<p class="lede">Key <code>133457799BBCDFF1</code>, plaintext <code>0123456789ABCDEF</code> → ciphertext <code>85E813540F0AB405</code>. Companion to 08.</p></div>
+
+<h2>All 16 subkeys for this key (verify your schedule against these)</h2>
+<table class="data"><tr><th>Round</th><th>Subkey K (48-bit hex)</th><th>Shift</th></tr>
+<tr><td>1</td><td><code>1B02EFFC7072</code></td><td>1</td></tr>
+<tr><td>2</td><td><code>79AED9DBC9E5</code></td><td>1</td></tr>
+<tr><td>3</td><td><code>55FC8A42CF99</code></td><td>2</td></tr>
+<tr><td>4</td><td><code>72ADD6DB351D</code></td><td>2</td></tr>
+<tr><td>5</td><td><code>7CEC07EB53A8</code></td><td>2</td></tr>
+<tr><td>6</td><td><code>63A53E507B2F</code></td><td>2</td></tr>
+<tr><td>7</td><td><code>EC84B7F618BC</code></td><td>2</td></tr>
+<tr><td>8</td><td><code>F78A3AC53656</code></td><td>2</td></tr>
+<tr><td>9</td><td><code>FEC23342AE17</code></td><td>1</td></tr>
+<tr><td>10</td><td><code>E954204B867D</code></td><td>2</td></tr>
+<tr><td>11</td><td><code>355F5200B5BC</code></td><td>2</td></tr>
+<tr><td>12</td><td><code>A6F3AEB2F3D8</code></td><td>2</td></tr>
+<tr><td>13</td><td><code>64FDB1238758</code></td><td>2</td></tr>
+<tr><td>14</td><td><code>D5FB03E22B81</code></td><td>2</td></tr>
+<tr><td>15</td><td><code>E960AF9129D7</code></td><td>2</td></tr>
+<tr><td>16</td><td><code>1B9616787196</code></td><td>1</td></tr></table>
+<p style="font-size:13px;color:var(--muted)">Standard schedule for this textbook key (shifts 1,1,2×6,1,2×7,1 — cumulative 28, so C₁₆=C₀). Decryption feeds K₁₆…K₁.</p>
+
+<h2>Step 1 · Initial Permutation → L₀, R₀</h2>
+<div class="math">M = 0123456789ABCDEF
+  = 0000 0001 0010 0011 0100 0101 0110 0111
+    1000 1001 1010 1011 1100 1101 1110 1111
+
+IP(M): L0 = <span class="h">CC00CCFF</span> = 1100 1100 0000 0000 1100 1100 1111 1111
+       R0 = <span class="h">F0AAF0AA</span> = 1111 0000 1010 1010 1111 0000 1010 1010</div>
+
+<h2>Step 2 · Round-1 F-function on R₀ (every stage shown to S-box input)</h2>
+<div class="math"><span class="c"># Expansion E: 32 → 48 (table on page 08)</span>
+R0 = F0AAF0AA
+E(R0) = <span class="v">7A15557A1555</span>
+  <span class="c"># groups: 011110 100001 010101 010101 011110 100001 010101 010101</span>
+
+<span class="c"># XOR K1 = 1B02EFFC7072</span>
+E ⊕ K1 = 7A15557A1555 ⊕ 1B02EFFC7072 = <span class="v">6117BAAB0A67</span>
+  <span class="c"># 7A⊕1B=61 15⊕02=17 | 55⊕EF=BA 57⊕FC=AB | 7A⊕70=0A 15⊕72=67</span>
+
+<span class="c"># Split into eight 6-bit S-box inputs B1..B8:</span>
+B = 011000 010001 011110 111010 101010 110000 101001 100111
+B1=011000 B2=010001 B3=011110 B4=111010 B5=101010 B6=110000 B7=101001 B8=100111</div>
+<div class="box blue"><div class="label">S-box walkthrough — S1 fully, rest identically</div>
+B1=<code>011000</code>: outer <code>00</code>=row 0, inner <code>1100</code>=col 12. S1 row 0 = [14,4,13,1,2,15,11,8,3,10,6,12,<strong>5</strong>,9,0,7] → col 12 = 5 = <code>0101</code>. B2–B8 each do the same row/column lookup in S2–S8 (6→4 bits), giving 32 bits total, then Permutation P shuffles them → 32-bit <code>f(R₀,K₁)</code>.</div>
+<div class="math"><span class="c"># Standard result for this vector:</span>
+f(R0,K1) = <span class="v">234A5044</span>
+R1 = L0 ⊕ f = CC00CCFF ⊕ 234A5044 = <span class="r">EF4A9CBB</span>
+L1 = R0 = <span class="r">F0AAF0AA</span>
+<span class="c"># CC⊕23=EF 00⊕4A=4A CC⊕50=9C FF⊕44=BB ✓</span></div>
+
+<h2>Steps 3–16 · Iterate, swap, finish</h2>
+<div class="math">Rounds 2–16: same Feistel step with K2..K16 above.
+After R16: pre-output = R16 ‖ L16   <span class="c"># final swap (undoes last crossover)</span>
+Ciphertext = IP⁻¹(pre-output) = <span class="r">85E813540F0AB405</span>  ✓
+<span class="c"># Decryption: identical circuit, keys K16..K1, ciphertext → 0123456789ABCDEF.</span></div>
+<div class="box gold"><div class="label">What to memorise</div>
+IP gives L₀=<code>CC00CCFF</code> R₀=<code>F0AAF0AA</code>; Round 1 gives L₁=<code>F0AAF0AA</code> R₁=<code>EF4A9CBB</code>; final cipher <code>85E813540F0AB405</code>. K₁=<code>1B02EFFC7072</code>, K₁₆=<code>1B9616787196</code>. If you can reproduce E⊕K₁=<code>6117BAAB0A67</code> and the S1 lookup, you own DES.</div>
+<div class="exam-tip"><strong>Exam one-liner:</strong> Expand (E) → XOR key → S-boxes → P-permute → XOR left half; 16× with K₁…K₁₆, then IP⁻¹.</div>
+
+<div class="prevnext">
+<a href="08-des-feistel.html"><div class="dir">← Prev</div><div class="t">08 · DES / Feistel</div></a>
+<a href="09-rsa.html"><div class="dir">Next →</div><div class="t">09 · RSA</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

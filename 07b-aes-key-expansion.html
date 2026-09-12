@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07B · AES Key Expansion Deep-Dive — CramSheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="site-nav"><div class="nav-inner">
+<a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
+<button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+<div class="nav-links">
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html" class="active">07B Keys</a><a href="08-des-feistel.html">08 DES</a><a href="08b-des-encryption.html">08B DES-Enc</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+</div></div></nav>
+<main class="wrap">
+<div class="breadcrumb"><a href="index.html">Home</a> / <a href="07-aes.html">07 · AES</a> / 07B Deep-Dive</div>
+<div class="topic-head"><div class="sec-num">07B — Symmetric Deep-Dive</div><h1>AES Key Expansion — Every Word Traced</h1>
+<p class="lede">FIPS-197 vector: how <code>2b7e1516 28aed2a6 abf71588 09cf4f3c</code> becomes 11 round keys. Companion to 07.</p></div>
+
+<h2>Rules (AES-128: 4 words → 44 words)</h2>
+<div class="math"><span class="c"># W0..W3 = cipher key columns. For i = 4..43:</span>
+if (i mod 4 == 0):  temp = SubWord(RotWord(W[i-1])) ⊕ Rcon[i/4]
+else:               temp = W[i-1]
+W[i] = W[i-4] ⊕ temp
+
+RotWord(a,b,c,d) = (b,c,d,a)   <span class="c"># 1-byte left rotate</span>
+SubWord = S-box on each of the 4 bytes
+Rcon[j] = (2^(j-1) in GF(2^8), 0, 0, 0)  → 01,02,04,08,10,20,40,80,1B,36 ...</div>
+<table class="data"><tr><th>j</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr>
+<tr><th>Rcon</th><td>01</td><td>02</td><td>04</td><td>08</td><td>10</td><td>20</td><td>40</td><td>80</td><td>1B</td><td>36</td></tr></table>
+
+<h2>W₀–W₃ (the key itself, column-wise)</h2>
+<div class="math">W0 = <span class="h">2b7e1516</span>   W1 = <span class="h">28aed2a6</span>   W2 = <span class="h">abf71588</span>   W3 = <span class="h">09cf4f3c</span>
+<span class="c"># K0 = W0‖W1‖W2‖W3 = the cipher key.</span></div>
+
+<h2>Round 1 words W₄–W₇ → K₁ (full trace)</h2>
+<div class="math"><span class="c"># --- W4 (i=4, Rcon[1]=01000000) ---</span>
+W3            = 09 cf 4f 3c
+RotWord       = cf 4f 3c 09
+SubWord (S)   = 8a 84 eb 01      <span class="c"># S[cf]=8a S[4f]=84 S[3c]=eb S[09]=01</span>
+⊕ Rcon[1]     = <span class="v">8b 84 eb 01</span>    <span class="c"># 8a⊕01=8b, rest unchanged</span>
+W4 = W0 ⊕ temp = 2b7e1516 ⊕ 8b84eb01 = <span class="r">a0fafe17</span>
+  <span class="c"># 2b⊕8b=a0  7e⊕84=fa  15⊕eb=fe  16⊕01=17 ✓</span>
+
+<span class="c"># --- W5, W6, W7 (no Rot/Sub, just chain XOR) ---</span>
+W5 = W1 ⊕ W4 = 28aed2a6 ⊕ a0fafe17 = <span class="r">88542cb1</span>
+  <span class="c"># 28⊕a0=88 ae⊕fa=54 d2⊕fe=2c a6⊕17=b1</span>
+W6 = W2 ⊕ W5 = abf71588 ⊕ 88542cb1 = <span class="r">23a33939</span>
+  <span class="c"># ab⊕88=23 f7⊕54=a3 15⊕2c=39 88⊕b1=39</span>
+W7 = W3 ⊕ W6 = 09cf4f3c ⊕ 23a33939 = <span class="r">2a6c7605</span>
+  <span class="c"># 09⊕23=2a cf⊕a3=6c 4f⊕39=76 3c⊕39=05</span>
+
+<span class="r">K1 = W4‖W5‖W6‖W7 = a0fafe17 88542cb1 23a33939 2a6c7605</span> ✓</div>
+
+<h2>Round 2 words W₈–W₁₁ → K₂ (full trace)</h2>
+<div class="math"><span class="c"># --- W8 (i=8, Rcon[2]=02000000) ---</span>
+W7            = 2a 6c 76 05
+RotWord       = 6c 76 05 2a
+SubWord       = 50 38 6b e5      <span class="c"># S[6c]=50 S[76]=38 S[05]=6b S[2a]=e5</span>
+⊕ Rcon[2]     = <span class="v">52 38 6b e5</span>    <span class="c"># 50⊕02=52</span>
+W8  = W4 ⊕ temp = a0fafe17 ⊕ 52386be5 = <span class="r">f2c295f2</span>
+W9  = W5 ⊕ W8  = 88542cb1 ⊕ f2c295f2 = <span class="r">7a96b943</span>
+W10 = W6 ⊕ W9  = 23a33939 ⊕ 7a96b943 = <span class="r">5935807a</span>
+W11 = W7 ⊕ W10 = 2a6c7605 ⊕ 5935807a = <span class="r">7359f67f</span>
+
+<span class="r">K2 = f2c295f2 7a96b943 5935807a 7359f67f</span>  (FIPS-197 ✓)</div>
+
+<h2>Rest of the schedule (structure, values to verify against)</h2>
+<p>Rounds 3–10 continue identically (Rcon 04,08,10,20,40,80,1B,36). Total 44 words → 11 keys K₀–K₁₀. Properties examiners love:</p>
+<ul><li>Each word depends on <em>all</em> previous key bytes — one key-bit flip avalanches through later round keys</li><li>Non-linearity comes only from the <code>i mod 4==0</code> SubWord steps; the other 3/4 are linear XOR chains</li><li>Rcon breaks symmetry (otherwise W₄=W₀⊕f(W₃) patterns could slide)</li><li>AES-192 uses 6-word blocks with SubWord every 6th; AES-256 adds SubWord on <code>i mod 8==4</code> too</li></ul>
+<div class="box gold"><div class="label">Memorise</div>
+<code>temp = Sub(Rot(prev)) ⊕ Rcon</code> every 4th word; otherwise <code>W[i]=W[i-4]⊕W[i-1]</code>. Rcon = powers of 2 in GF(2⁸): 01 02 04 08 10 20 40 80 1B 36.</div>
+<div class="exam-tip"><strong>Exam one-liner:</strong> Show W₄ from W₀⊕(Sub(Rot(W₃))⊕Rcon) = <code>a0fafe17</code>, then chain — that single trace proves you understand the schedule.</div>
+
+<div class="prevnext">
+<a href="07-aes.html"><div class="dir">← Prev</div><div class="t">07 · AES Round</div></a>
+<a href="08-des-feistel.html"><div class="dir">Next →</div><div class="t">08 · DES / Feistel</div></a>
+</div>
+</main>
+<footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
+</body>
+</html>

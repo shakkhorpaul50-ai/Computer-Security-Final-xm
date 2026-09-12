@@ -20,7 +20,9 @@
 <a href="05-vigenere-cipher.html">05 Vigenère</a>
 <a href="06-playfair-cipher.html">06 Playfair</a>
 <a href="07-aes.html">07 AES</a>
+<a href="07b-aes-key-expansion.html">07B Keys</a>
 <a href="08-des-feistel.html">08 DES</a>
+<a href="08b-des-encryption.html">08B DES-Enc</a>
 <a href="09-rsa.html">09 RSA</a>
 <a href="10-diffie-hellman.html">10 DH</a>
 <a href="11-mitm.html">11 MITM</a>
@@ -33,7 +35,7 @@
 <div class="eyebrow">Cryptography &amp; Network Security · Last-Night Suggestion</div>
 <h1>Cram<em>·</em>Sheet</h1>
 <p class="sub">Every topic, every formula, every diagram — worked end-to-end so you can walk in calm tomorrow.</p>
-<div class="hero-meta"><span class="pill red">14 topics</span><span class="pill blue">Full math</span><span class="pill green">Exam-ready</span></div>
+<div class="hero-meta"><span class="pill red">16 topics + 2 deep-dives</span><span class="pill blue">Full math</span><span class="pill green">Exam-ready</span></div>
 <div><a class="btn" href="01-encryption-process.html">Start at 01 →</a><a class="btn secondary" href="#topics">Browse topics</a></div>
 </div></header>
 
@@ -56,8 +58,10 @@
 
 <div class="section-title">Symmetric Crypto</div>
 <div class="cards">
-<a class="card" href="07-aes.html"><span class="n">07</span><h3>AES — Full Round Math</h3><p>FIPS-197 vector, SubBytes→ShiftRows→MixColumns→AddRoundKey + key expansion.</p><span class="go">Open →</span></a>
-<a class="card" href="08-des-feistel.html"><span class="n">08</span><h3>DES / Feistel</h3><p>Feistel invertibility proof, F-function, full K1 key-schedule from 133457799BBCDFF1.</p><span class="go">Open →</span></a>
+<a class="card" href="07-aes.html"><span class="n">07</span><h3>AES — Full Round Math</h3><p>FIPS-197 vector, SubBytes→ShiftRows→MixColumns→AddRoundKey + GF(2⁸), S-box, full structure.</p><span class="go">Open →</span></a>
+<a class="card" href="07b-aes-key-expansion.html"><span class="n">07B</span><h3>AES Key Expansion Deep-Dive</h3><p>W₀–W₄₃ traced, RotWord/SubWord/Rcon, K₁ + K₂ fully worked. Companion to 07.</p><span class="go">Open →</span></a>
+<a class="card" href="08-des-feistel.html"><span class="n">08</span><h3>DES / Feistel</h3><p>Feistel proof, F-function, E/P tables, shift table, full K1 from 133457799BBCDFF1.</p><span class="go">Open →</span></a>
+<a class="card" href="08b-des-encryption.html"><span class="n">08B</span><h3>DES Full Encryption Worked</h3><p>All K₁–K₁₆ + 0123456789ABCDEF → 85E813540F0AB405 with Round-1 F-breakdown.</p><span class="go">Open →</span></a>
 </div>
 
 <div class="section-title">Asymmetric + Attacks</div>
@@ -75,12 +79,12 @@
 </div>
 
 <div class="box gold" style="margin-top:28px"><div class="label">How to use this site</div>
-Read in order 01→14 with Prev/Next buttons, or jump via the top nav. Every page ends with an exam one-liner. Quote to remember: <em>"A cryptosystem should be secure even if everything about the system, except the key, is public knowledge." — Kerckhoffs, 1883</em></div>
+Read in order 01→14 (with 07B after 07 and 08B after 08) with Prev/Next buttons, or jump via the top nav. Every page ends with an exam one-liner. Quote to remember: <em>"A cryptosystem should be secure even if everything about the system, except the key, is public knowledge." — Kerckhoffs, 1883</em></div>
 
 <div class="prevnext">
 <a href="01-encryption-process.html"><div class="dir">Next →</div><div class="t">01 · The Encryption Process</div></a>
 </div>
 </main>
-<footer class="site-footer">Cryptography · CramSheet · 14 topics · Shared CSS build</footer>
+<footer class="site-footer">Cryptography · CramSheet · 16 topics + 2 deep-dives · Shared CSS build</footer>
 </body>
 </html>

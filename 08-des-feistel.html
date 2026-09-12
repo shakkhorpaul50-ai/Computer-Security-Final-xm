@@ -11,7 +11,7 @@
 <a class="brand" href="index.html">Cram<em>·</em>Sheet</a>
 <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
 <div class="nav-links">
-<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="08-des-feistel.html" class="active">08 DES</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
+<a href="index.html">Home</a><a href="01-encryption-process.html">01 Encrypt</a><a href="02-cryptographic-primitives.html">02 Primitives</a><a href="03-kerckhoffs-principle.html">03 Kerckhoffs</a><a href="04-substitution-cipher.html">04 Substit.</a><a href="05-vigenere-cipher.html">05 Vigenère</a><a href="06-playfair-cipher.html">06 Playfair</a><a href="07-aes.html">07 AES</a><a href="07b-aes-key-expansion.html">07B Keys</a><a href="08-des-feistel.html" class="active">08 DES</a><a href="08b-des-encryption.html">08B DES-Enc</a><a href="09-rsa.html">09 RSA</a><a href="10-diffie-hellman.html">10 DH</a><a href="11-mitm.html">11 MITM</a><a href="12-sps-protocol.html">12 SPS</a><a href="13-access-control-models.html">13 Access</a><a href="14-abac.html">14 ABAC</a>
 </div></div></nav>
 <main class="wrap">
 <div class="breadcrumb"><a href="index.html">Home</a> / 08 · Symmetric</div>
@@ -30,6 +30,8 @@ So the same circuit decrypts by feeding round keys in reverse K₁₆…K₁. F 
 
 <h2>DES description</h2>
 <ul><li>64-bit block, 56-bit effective key (8 of 64 bits are parity), 16 rounds</li><li>Initial Permutation IP — bit reorder (cosmetic; no security value)</li><li>16 Feistel rounds, final swap + IP⁻¹ → ciphertext</li><li>3DES fix: <code>C = E_K3(D_K2(E_K1(m)))</code> (EDE, 112/168-bit effective)</li></ul>
+<div class="theorem"><div class="label">Parity bits — which 8 are dropped?</div>
+Bits 8,16,24,32,40,48,56,64 (LSB of each key byte) are odd-parity, never enter PC-1. Example key <code>133457799BBCDFF1</code>: byte <code>0x13</code>=00010011 has three 1s (odd ✓), so bit 8 = 1 is parity. PC-1's 56 picks skip exactly these positions — that's why 64→56.</div>
 
 <h2>F-function (per round)</h2>
 <div class="steps">
@@ -40,6 +42,12 @@ So the same circuit decrypts by feeding round keys in reverse K₁₆…K₁. F 
 </div>
 <div class="box blue"><div class="label">S-box example (S1)</div>
 Input 6 bits <code>011011</code>: outer bits <code>01</code>=row 1, inner <code>1101</code>=col 13. S1[1][13]=5 → output <code>0101</code>. Each S-box is a different 4×16 lookup; this non-linearity is what breaks linear/differential attacks.</div>
+<div class="math"><span class="c"># Expansion E (32→48): each output bit = input bit at listed position</span>
+32  1  2  3  4  5  |  4  5  6  7  8  9  |  8  9 10 11 12 13  | 12 13 14 15 16 17
+16 17 18 19 20 21  | 20 21 22 23 24 25  | 24 25 26 27 28 29  | 28 29 30 31 32  1
+<span class="c"># Permutation P (32-bit shuffle after S-boxes)</span>
+16  7 20 21 29 12 28 17  1 15 23 26  5 18 31 10
+ 2  8 24 14 32 27  3  9 19 13 30  6 22 11  4 25</div>
 
 <h2>One Feistel round — diagram</h2>
 <div class="diagram">
@@ -94,13 +102,18 @@ K1 (hex):    <span class="r">1B 02 EF FC 70 72</span>  ✓ textbook vector</div>
 
 <div class="box blue"><div class="label">Shift schedule (all 16 rounds)</div>
 Rounds 1,2,9,16 → shift 1. Others → shift 2. Total = 4×1+12×2 = 28, so C₁₆=C₀ — decryption reuses the schedule in reverse.</div>
+<table class="data"><tr><th>Round</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th></tr>
+<tr><th>Shift</th><td>1</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td></tr>
+<tr><th>Cumul.</th><td>1</td><td>2</td><td>4</td><td>6</td><td>8</td><td>10</td><td>12</td><td>14</td><td>15</td><td>17</td><td>19</td><td>21</td><td>23</td><td>25</td><td>27</td><td>28</td></tr></table>
+<div class="box green"><div class="label">Deep-dive → new page</div>
+All 16 subkeys K₁–K₁₆ for this exact key, plus a full plaintext→ciphertext run (<code>0123456789ABCDEF → 85E813540F0AB405</code>) with IP, Round-1 F-breakdown and final permutation, are on <a href="08b-des-encryption.html"><strong>08B · DES Full Encryption Worked</strong></a>.</div>
 <div class="box accent"><div class="label">Why DES is dead</div>
 56-bit → 2⁵⁶ ≈ 7.2×10¹⁶. EFF Deep Crack (1998) brute-forced it in ~22h. Successor: AES.</div>
 <div class="exam-tip"><strong>Exam one-liner:</strong> Feistel decrypts with reversed keys; DES = 16 Feistel rounds + broken 56-bit key (K₁=<code>1B02EFFC7072</code>).</div>
 
 <div class="prevnext">
-<a href="07-aes.html"><div class="dir">← Prev</div><div class="t">07 · AES</div></a>
-<a href="09-rsa.html"><div class="dir">Next →</div><div class="t">09 · RSA</div></a>
+<a href="07b-aes-key-expansion.html"><div class="dir">← Prev</div><div class="t">07B · AES Key Expansion</div></a>
+<a href="08b-des-encryption.html"><div class="dir">Next →</div><div class="t">08B · DES Full Encryption</div></a>
 </div>
 </main>
 <footer class="site-footer">Cryptography · CramSheet · <a href="index.html" style="color:inherit">Home</a></footer>
