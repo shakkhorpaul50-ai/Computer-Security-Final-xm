@@ -24,6 +24,65 @@
 <tr><td><strong>RBAC</strong><br><em>Role-Based</em></td><td>Users → roles → permissions</td><td>Scales with org; matches jobs; easy audit</td><td>Role explosion; static context</td></tr>
 <tr><td><strong>ABAC</strong><br><em>Attribute-Based</em></td><td>Subject/object/action/environment attributes</td><td>Most expressive; dynamic</td><td>Policy complexity; harder "who has what" audit</td></tr></table>
 
+<h2>DAC — Discretionary Access Control (full description)</h2>
+<p><strong>Definition:</strong> the <em>owner</em> of each resource decides who may access it, at their own discretion — typically by editing an Access Control List (ACL) or Unix-style permission bits attached to the object.</p>
+<div class="math"><span class="c"># Access matrix view — rows = subjects, columns = objects:</span>
+          report.pdf   grades.db
+alice        rw           r       <span class="c"># alice owns report.pdf, grants bob read</span>
+bob          r            —
+
+<span class="c"># Unix realisation: -rw-r--r--  = owner rw, group r, other r</span>
+<span class="c"># Decision: allow iff an ACL entry (or ownership) grants (user, action).</span></div>
+<p><strong>Walkthrough:</strong> Alice creates <code>report.pdf</code> and clicks "Share → Bob can view". The OS appends <code>(bob, read)</code> to the file's ACL. When Bob opens it, the reference monitor finds the entry and permits. Alice may later revoke it — or Bob may copy the file and re-share it himself.</p>
+<div class="box green"><div class="label">Strengths</div>
+Intuitive (matches human ownership), zero central admin, flexible delegation, perfect for collaboration (files, Google Docs, GitHub repos).</div>
+<div class="box accent"><div class="label">Weaknesses — the exam attack</div>
+<strong>Trojan-horse leakage:</strong> malware running as Alice inherits all of Alice's rights and silently re-shares her files. Permissions <strong>propagate uncontrollably</strong> (Bob copies → Bob owns the copy → original policy dead). Global audit ("who can read X, transitively?") is undecidable in general (Harrison–Ruzzo–Ullman result).</div>
+<p><strong>Use when:</strong> cooperation matters more than confinement — personal files, team docs, commercial sharing. <strong>Never</strong> for military secrets.</p>
+
+<h2>MAC — Mandatory Access Control (full description)</h2>
+<p><strong>Definition:</strong> the <em>system</em> (not any user) enforces access from security <strong>labels</strong>: every subject carries a <em>clearance</em>, every object a <em>classification</em> (e.g. Unclassified &lt; Confidential &lt; Secret &lt; Top Secret, plus compartment sets like {NATO}). No user — not even the owner — can override the policy.</p>
+<div class="math"><span class="c"># Bell–LaPadula rules (confidentiality):</span>
+READ:   allow iff clearance(s) ≥ classification(o)   <span class="c"># no-read-up</span>
+WRITE:  allow iff classification(o) ≥ clearance(s)   <span class="c"># no-write-down (*-property)</span>
+<span class="c"># Effect: information flows UP the lattice only.</span>
+
+<span class="c"># Example: Alice cleared Secret reads Confidential ✓, reads Top Secret ✗;</span>
+<span class="c"># a Secret process writing to an Unclassified file ✗ (would leak down).</span></div>
+<p><strong>Walkthrough:</strong> a general (Top Secret, {NATO}) opens a (Secret, {NATO}) battle plan — read allowed (down-read). The same general cannot paste it into an Unclassified memo — write-down blocked even though they "own" the session. A Trojan inside the Secret process is equally caged: labels, not identity, decide.</p>
+<div class="box green"><div class="label">Strengths</div>
+Central, uniform policy; <strong>Trojan-resistant</strong> (malware can't relabel); provable information-flow guarantees; mandatory audit trail.</div>
+<div class="box accent"><div class="label">Weaknesses</div>
+Rigid (legitimate downgrades need a trusted declassifier); labelling <em>everything</em> and clearing <em>everyone</em> is admin-heavy; poor fit for commercial workflows where owners must share freely.</div>
+<p><strong>Use when:</strong> confidentiality outranks convenience — military, intelligence, safety-critical regulators. Real systems: SELinux enforcing mode, Trusted Solaris. Integrity twin: <strong>Biba</strong> (no-write-up / no-read-down) + <strong>Clark-Wilson</strong> (well-formed transactions, separation of duties).</p>
+
+<h2>RBAC — Role-Based Access Control (full description)</h2>
+<p><strong>Definition:</strong> permissions attach to <strong>roles</strong> (job functions), users are assigned to roles, and sessions activate a subset. Decision chain: <em>user → role → permission</em>. Role hierarchies let senior roles inherit junior permissions (Doctor inherits Nurse's read rights, plus prescribe).</p>
+<div class="math"><span class="c"># Hospital example:</span>
+roles: Nurse {read charts}  Doctor {+ prescribe}  Admin {+ admit/discharge}
+users: alice → Nurse;  bob → Doctor (inherits Nurse perms)
+session(bob, night-shift) activates {Doctor}  →  prescribe(chart_7) PERMIT
+session(alice, ...)       prescribe(chart_7) →  DENY (role lacks it)</div>
+<p><strong>Walkthrough:</strong> Bob is hired as Doctor → admin assigns role once → Bob instantly gains hundreds of mapped permissions. Bob moves to Admin → one role swap, no per-file edits. Auditing is a matrix lookup: "list everyone with prescribe" = members of Doctor+.</p>
+<div class="box green"><div class="label">Strengths</div>
+Scales with headcount (onboard = assign role); mirrors org charts; least-privilege via sessions; easy, exact audits; separation-of-duties constraints (same user can't hold Cashier + Auditor).</div>
+<div class="box accent"><div class="label">Weaknesses</div>
+<strong>Role explosion:</strong> fine-grained needs ("night-shift cardiologists in Ward 3") spawn thousands of roles. Static — no time/location/device context without bolting on attributes (which is just ABAC). Role engineering (discovering the right roles) is expensive up front.</div>
+<p><strong>Use when:</strong> stable organisations with clear job functions — hospitals, banks, universities, enterprises. NIST RBAC standard (INCITS 359) with core / hierarchical / constrained / symmetric variants.</p>
+
+<h2>ABAC — Attribute-Based Access Control (full description)</h2>
+<p><strong>Definition:</strong> access is computed at request time from a <strong>policy over attributes</strong> of the subject, the object, the action, and the environment — not from fixed roles or labels. The most expressive of the four models (full page → <a href="14-abac.html">14 · ABAC</a>).</p>
+<div class="math"><span class="c"># Same hospital rule, now context-aware:</span>
+PERMIT iff subject.role == "doctor"  AND  subject.dept == object.dept
+        AND object.type == "medical_record"  AND action == "read"
+        AND environment.time ∈ 07:00–19:00  AND environment.day ∈ Mon..Fri</div>
+<p><strong>Walkthrough:</strong> Dr. Bob (Cardiology) opens a Cardiology record at 10:00 Tuesday → all clauses true → PERMIT. Same Bob at 23:00, or opening an Oncology record, or from an unmanaged home laptop → DENY — with zero role changes, because attributes are re-read every request via the PIP.</p>
+<div class="box green"><div class="label">Strengths</div>
+Fine-grained, dynamic, context-aware (time/location/device), composable with Boolean logic, no role explosion, single policy covers thousands of cases.</div>
+<div class="box accent"><div class="label">Weaknesses</div>
+Policy authoring/testing is hard; answering "who can access what?" needs simulation, not a lookup; attribute pipelines (HR feed, device posture) must be fresh and trustworthy or decisions rot.</div>
+<p><strong>Use when:</strong> fine-grained, context-dependent access at scale — cloud IAM, healthcare, zero-trust networks. Standards: XACML (PEP/PDP/PIP/PAP), OPA/Rego, AWS IAM, Cedar.</p>
+
 <h2>Theory — the classic policies behind MAC</h2>
 <div class="box blue"><div class="label">Bell–LaPadula (confidentiality, military)</div>
 <div class="math">no-read-up:    subject s may read object o  iff clearance(s) ≥ classification(o)
